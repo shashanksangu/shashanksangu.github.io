@@ -377,6 +377,14 @@
     /* ─────────────────────────────────────────────────────
        RESPONSIVE
     ───────────────────────────────────────────────────── */
+
+    /* Touch devices — disable custom cursor entirely */
+    @media (hover: none), (pointer: coarse) {
+        body { cursor: auto; }
+        #cursor, #cursor-ring { display: none; }
+    }
+
+    /* ── Tablet (≤ 1024px) ── */
     @media (max-width: 1024px) {
         #navbar { padding: 18px 30px; }
         .section { padding: 90px 30px; }
@@ -384,31 +392,103 @@
         .resume-cols { grid-template-columns: 1fr; gap: 48px; }
         .skills-grid { grid-template-columns: 1fr; }
         .patents-grid { grid-template-columns: 1fr; }
-        .contact-inner { grid-template-columns: 1fr; }
         .hero-social { display: none; }
         .hud-overlay { padding: 56px 30px 40px; }
         footer { padding: 28px 30px; }
         .exp-slide { padding: 100px 40px 80px; }
         .exp-slide-bg-num { font-size: 25vw; right: 20px; }
+        .contact-left { max-width: 380px; }
     }
+
+    /* ── Mobile (≤ 768px) ── */
     @media (max-width: 768px) {
-        .nav-links { display: none; position: fixed; top: 0; right: 0; height: 100vh; width: 240px; background: rgba(2,3,10,.97); flex-direction: column; justify-content: center; align-items: center; gap: 30px; transform: translateX(100%); transition: transform .4s; z-index: 999; }
+        body { cursor: auto; }
+        #cursor, #cursor-ring { display: none; }
+
+        /* Nav — slide-in drawer */
+        #navbar { padding: 16px 20px; }
+        .nav-links {
+            display: none; position: fixed; top: 0; right: 0;
+            height: 100vh; width: 240px;
+            background: rgba(2,3,10,.97); backdrop-filter: blur(20px);
+            flex-direction: column; justify-content: center; align-items: center;
+            gap: 30px; transform: translateX(100%); transition: transform .4s; z-index: 999;
+        }
         .nav-links.open { display: flex; transform: translateX(0); }
-        .nav-toggle { display: flex; }
+        .nav-toggle { display: flex; cursor: pointer; }
+
+        /* Sections */
+        .section { padding: 80px 20px; }
+        .glass-card { padding: 28px; }
+        footer { padding: 24px 20px; }
+
+        /* Hero */
+        .hud-overlay { display: none; }
+        .hero-buttons { flex-direction: column; align-items: center; }
+        .hero-role { letter-spacing: 1px; }
+
+        /* Stats */
         .stats-grid { grid-template-columns: repeat(2,1fr); }
+        .stat-item { padding: 40px 16px; }
         .stat-item:nth-child(2) { border-right: none; }
         .stat-item:nth-child(3), .stat-item:nth-child(4) { border-top: 1px solid rgba(0,212,255,.07); }
-        /* On mobile, horizontal section becomes vertical */
+
+        /* Experience — stack vertically */
         .horiz-pin { overflow: visible; }
         .horiz-track { flex-direction: column; width: auto !important; transform: none !important; }
-        .exp-slide { width: 100%; min-height: auto; padding: 80px 30px; }
+        .exp-slide { width: 100%; min-height: auto; padding: 80px 24px 60px; }
         .exp-slide-bg-num { display: none; }
         .exp-dots { display: none !important; }
         .scroll-hint-x { display: none; }
+
+        /* Patents */
         .patent-card { flex-direction: column; }
         .patent-img { width: 100%; height: 180px; }
-        .hud-overlay { display: none; }
-        .hero-buttons { flex-direction: column; align-items: center; }
+
+        /* Contact — globe as faint full bg, card full width */
+        #contact { padding-top: 80px; padding-bottom: 80px; }
+        #globe-canvas {
+            width: 100%; opacity: 0.18;
+            -webkit-mask-image: none; mask-image: none;
+        }
+        /* dark veil so text is always readable over the globe */
+        #contact::after {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(7,10,24,.65); z-index: 1; pointer-events: none;
+        }
+        .contact-inner { z-index: 2; }
+        .contact-left { max-width: 100%; }
+    }
+
+    /* ── Small mobile (≤ 480px) ── */
+    @media (max-width: 480px) {
+        #navbar { padding: 14px 16px; }
+        .section { padding: 64px 16px; }
+        footer { padding: 18px 16px; }
+
+        .glass-card { padding: 20px; }
+
+        .hero-subtitle { letter-spacing: 4px; }
+        .hero-role { font-size: .75rem; letter-spacing: 1px; margin-bottom: 40px; }
+        .btn-neon, .btn-ghost { padding: 12px 26px; font-size: .72rem; letter-spacing: 2px; }
+
+        .stat-item { padding: 30px 10px; }
+        .stat-num { font-size: clamp(1.4rem,7vw,2rem); }
+
+        .exp-slide { padding: 60px 16px 48px; }
+        .exp-slide-title { font-size: clamp(1.3rem,6vw,1.8rem); }
+        .exp-slide-desc { font-size: .82rem; }
+
+        .about-grid { gap: 14px; }
+        .resume-cols { gap: 32px; }
+        .skills-grid { gap: 14px 0; }
+
+        .patent-img { height: 140px; }
+        .patent-card { padding: 20px; }
+
+        /* Hide globe on very small screens — save GPU */
+        #globe-canvas { display: none; }
+        #contact::after { display: none; }
     }
     </style>
 </head>
@@ -1113,52 +1193,55 @@ gsap.fromTo('.patents-grid .glass-card',
 );
 
 /* ══════════════════════════════════════════
-   3D TILT ON GLASS CARDS
+   3D TILT ON GLASS CARDS  (desktop / hover-capable only)
 ══════════════════════════════════════════ */
-document.querySelectorAll('.tilt-card').forEach(function(card) {
-    card.addEventListener('mousemove', function(e) {
-        const r   = card.getBoundingClientRect();
-        const x   = e.clientX - r.left;
-        const y   = e.clientY - r.top;
-        const cx  = r.width  / 2;
-        const cy  = r.height / 2;
-        const rotX = ((y - cy) / cy) * -10;
-        const rotY = ((x - cx) / cx) *  10;
-        gsap.to(card, {
-            rotationX: rotX, rotationY: rotY,
-            transformPerspective: 900,
-            translateZ: 10,
-            duration: .25, ease: 'power2.out',
-            overwrite: 'auto'
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.querySelectorAll('.tilt-card').forEach(function(card) {
+        card.addEventListener('mousemove', function(e) {
+            const r   = card.getBoundingClientRect();
+            const x   = e.clientX - r.left;
+            const y   = e.clientY - r.top;
+            const cx  = r.width  / 2;
+            const cy  = r.height / 2;
+            const rotX = ((y - cy) / cy) * -10;
+            const rotY = ((x - cx) / cx) *  10;
+            gsap.to(card, {
+                rotationX: rotX, rotationY: rotY,
+                transformPerspective: 900,
+                translateZ: 10,
+                duration: .25, ease: 'power2.out',
+                overwrite: 'auto'
+            });
+            card.style.boxShadow =
+                (-rotY * 2) + 'px ' + (rotX * 2) + 'px 50px rgba(0,212,255,.12), ' +
+                '0 20px 60px rgba(0,212,255,.07)';
         });
-        /* dynamic shadow */
-        card.style.boxShadow =
-            (-rotY * 2) + 'px ' + (rotX * 2) + 'px 50px rgba(0,212,255,.12), ' +
-            '0 20px 60px rgba(0,212,255,.07)';
-    });
-    card.addEventListener('mouseleave', function() {
-        gsap.to(card, {
-            rotationX: 0, rotationY: 0, translateZ: 0,
-            duration: .7, ease: 'elastic.out(1,.4)', overwrite: 'auto'
+        card.addEventListener('mouseleave', function() {
+            gsap.to(card, {
+                rotationX: 0, rotationY: 0, translateZ: 0,
+                duration: .7, ease: 'elastic.out(1,.4)', overwrite: 'auto'
+            });
+            card.style.boxShadow = '';
         });
-        card.style.boxShadow = '';
     });
-});
+}
 
 /* ══════════════════════════════════════════
-   MAGNETIC BUTTONS
+   MAGNETIC BUTTONS  (desktop / hover-capable only)
 ══════════════════════════════════════════ */
-document.querySelectorAll('.mag-btn').forEach(function(btn) {
-    btn.addEventListener('mousemove', function(e) {
-        const r  = btn.getBoundingClientRect();
-        const dx = e.clientX - (r.left + r.width  / 2);
-        const dy = e.clientY - (r.top  + r.height / 2);
-        gsap.to(btn, { x: dx * .3, y: dy * .3, duration: .3, ease: 'power2.out' });
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.querySelectorAll('.mag-btn').forEach(function(btn) {
+        btn.addEventListener('mousemove', function(e) {
+            const r  = btn.getBoundingClientRect();
+            const dx = e.clientX - (r.left + r.width  / 2);
+            const dy = e.clientY - (r.top  + r.height / 2);
+            gsap.to(btn, { x: dx * .3, y: dy * .3, duration: .3, ease: 'power2.out' });
+        });
+        btn.addEventListener('mouseleave', function() {
+            gsap.to(btn, { x: 0, y: 0, duration: .6, ease: 'elastic.out(1,.4)' });
+        });
     });
-    btn.addEventListener('mouseleave', function() {
-        gsap.to(btn, { x: 0, y: 0, duration: .6, ease: 'elastic.out(1,.4)' });
-    });
-});
+}
 
 /* ══════════════════════════════════════════
    HERO PARALLAX ON SCROLL

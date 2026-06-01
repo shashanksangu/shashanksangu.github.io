@@ -1121,28 +1121,27 @@ document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.obser
 
     dotsEl.style.display = 'flex';
 
-    let current = 0;
-    let locked  = false;
-    let inside  = false;
+    let current   = 0;
+    let locked    = false;   /* true while slide animation is running */
+    let inside    = false;
+    let exitAccum = 0;       /* deltaY accumulator at first/last boundary */
 
-    /* Pin — end is one full viewport height so the section stays pinned while
-       we intercept wheel events. Scroll only escapes when we stop preventing it
-       (first/last slide boundary), at which point 1 vh of scroll exits the pin. */
-    ScrollTrigger.create({
+    const st = ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: '+=' + window.innerHeight,
         pin: true,
         anticipatePin: 1,
-        onEnter:     function() { inside = true;  snap(0, false); },
-        onLeave:     function() { inside = false; },
-        onEnterBack: function() { inside = true;  snap(total - 1, false); },
-        onLeaveBack: function() { inside = false; }
+        onEnter:     function() { inside = true;  exitAccum = 0; snap(0, false); },
+        onLeave:     function() { inside = false; exitAccum = 0; },
+        onEnterBack: function() { inside = true;  exitAccum = 0; snap(total - 1, false); },
+        onLeaveBack: function() { inside = false; exitAccum = 0; }
     });
 
     function snap(idx, animate) {
-        current = idx;
-        locked  = true;
+        current  = idx;
+        locked   = true;
+        exitAccum = 0;
 
         const slideW = section.offsetWidth;
 
@@ -1152,9 +1151,12 @@ document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.obser
         } else {
             gsap.to(track, {
                 x: -(current * slideW),
-                duration: 0.7,
+                duration: 0.65,
                 ease: 'power2.inOut',
-                onComplete: function() { setTimeout(function() { locked = false; }, 250); }
+                /* Lock releases AFTER the animation finishes + small buffer.
+                   Previously it released at 250 ms while animation was still
+                   running (700 ms), letting boundary events through too early. */
+                onComplete: function() { setTimeout(function() { locked = false; }, 120); }
             });
 
             if (current > 0) {
@@ -1163,7 +1165,7 @@ document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.obser
                 );
                 gsap.fromTo(elems,
                     { opacity: 0, y: 35 },
-                    { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power3.out', delay: 0.15 }
+                    { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', delay: 0.12 }
                 );
             }
         }
@@ -1171,19 +1173,35 @@ document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.obser
         dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
     }
 
-    /* One wheel tick → one slide.
-       At the first/last boundary we do NOT preventDefault so the browser
-       scrolls the page, which moves the scroll position past the pin end
-       and triggers onLeave naturally. */
     window.addEventListener('wheel', function(e) {
-        if (!inside || locked) return;
+        if (!inside) return;
+
+        /* Always block scroll while animating — even at the last slide.
+           This is what prevented the "skip last slide" bug: a wheel event
+           fired mid-animation (after the old 250 ms lock expired) saw
+           current === last, didn't preventDefault, and the page scrolled away. */
+        if (locked) { e.preventDefault(); return; }
 
         const dir  = e.deltaY > 0 ? 1 : -1;
         const next = current + dir;
 
         if (next >= 0 && next < total) {
+            /* Normal slide advance */
             e.preventDefault();
             snap(next, true);
+        } else {
+            /* At a boundary — need a small intentional scroll before exiting.
+               Once the threshold is met, jump the scroll position directly to
+               the ScrollTrigger's end so the section unpins in one frame,
+               instead of making the user scroll through a full viewport height. */
+            exitAccum += Math.abs(e.deltaY);
+            e.preventDefault();
+            if (exitAccum >= 80) {
+                exitAccum = 0;
+                inside = false;
+                const target = dir > 0 ? st.end + 2 : st.start - 2;
+                window.scrollTo({ top: target, behavior: 'instant' });
+            }
         }
     }, { passive: false });
 

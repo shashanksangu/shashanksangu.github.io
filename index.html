@@ -990,25 +990,43 @@ document.querySelectorAll('a, button, .glass-card').forEach(function(el) {
     ageo.setAttribute('color',    new THREE.BufferAttribute(ac, 3));
     scene.add(new THREE.Points(ageo, new THREE.PointsMaterial({ size: 1.4, map: ptex, vertexColors: true, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })));
 
-    /* mouse + scroll parallax */
+    /* mouse parallax + velocity-driven rotation */
     let tx = 0, ty = 0, cx = 0, cy = 0;
+    let mx = 0.5, my = 0.5, pmx = 0.5, pmy = 0.5;
+    let vx = 0, vy = 0;
+
     document.addEventListener('mousemove', function(e) {
-        tx = (e.clientX / window.innerWidth  - .5) * 5;
-        ty = (e.clientY / window.innerHeight - .5) * 3;
+        pmx = mx; pmy = my;
+        mx = e.clientX / window.innerWidth;
+        my = e.clientY / window.innerHeight;
+        tx = (mx - .5) * 20;          /* camera X shift — was 5, now 20 */
+        ty = (my - .5) * 13;          /* camera Y shift — was 3, now 13 */
+        vx = (mx - pmx) * 18;         /* velocity kick for rotation */
+        vy = (my - pmy) * 12;
     }, { passive: true });
 
     (function loop() {
         requestAnimationFrame(loop);
-        stars.rotation.y += .0002;
-        stars.rotation.x += .00008;
-        cx += (tx - cx) * .018;
-        cy += (ty - cy) * .018;
+
+        /* base slow drift + velocity-driven spin */
+        stars.rotation.y += .0002 + vx * 0.04;
+        stars.rotation.x += .00008 + vy * 0.025;
+
+        /* decay velocity each frame so it eases back to base drift */
+        vx *= 0.88;
+        vy *= 0.88;
+
+        /* smooth camera follow — lerp 0.055 for snappier response (was 0.018) */
+        cx += (tx - cx) * .055;
+        cy += (ty - cy) * .055;
         camera.position.x = cx;
         camera.position.y = -cy;
-        /* zoom camera based on scroll progress */
+
+        /* zoom based on scroll */
         const scrollProg = window.scrollY / (document.body.scrollHeight - window.innerHeight || 1);
         camera.position.z = 50 - scrollProg * 22;
         mat.opacity = Math.max(.25, .85 - scrollProg * .45);
+
         camera.lookAt(scene.position);
         renderer.render(scene, camera);
     })();

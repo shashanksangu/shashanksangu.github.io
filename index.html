@@ -1,685 +1,1351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Shashank's Portfolio.">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Shashank Sangu — AI Researcher & Senior Software Developer">
     <meta name="author" content="Shashank Sangu">
     <title>Shashank Sangu</title>
-    <!-- font icons -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
-    <!-- Bootstrap + JohnDoe main styles -->
-	<link rel="stylesheet" href="assets/css/johndoe.css">
-	
-	<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+    /* ─────────────────────────────────────────────────────
+       RESET & VARIABLES
+    ───────────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --cyan:   #00d4ff;
+        --purple: #7b2fff;
+        --pink:   #ff006e;
+        --dark:   #02030a;
+        --dark2:  #070a18;
+    }
+
+    html { scrollbar-width: thin; scrollbar-color: var(--cyan) var(--dark); }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--dark); }
+    ::-webkit-scrollbar-thumb { background: var(--cyan); }
+
+    body {
+        background: var(--dark); color: #fff;
+        font-family: 'Space Grotesk', sans-serif;
+        overflow-x: hidden; cursor: none;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       SCROLL PROGRESS BAR
+    ───────────────────────────────────────────────────── */
+    #scroll-progress {
+        position: fixed; right: 0; top: 0; width: 2px; height: 0%;
+        background: linear-gradient(to bottom, var(--cyan), var(--purple));
+        z-index: 9997; box-shadow: -2px 0 10px rgba(0,212,255,.5);
+    }
+
+    /* ─────────────────────────────────────────────────────
+       CURSOR
+    ───────────────────────────────────────────────────── */
+    #cursor {
+        position: fixed; width: 10px; height: 10px;
+        background: var(--cyan); border-radius: 50%;
+        pointer-events: none; z-index: 99999;
+        transform: translate(-50%,-50%);
+        transition: transform .08s, width .2s, height .2s, background .2s;
+        mix-blend-mode: screen;
+    }
+    #cursor.hover { width: 20px; height: 20px; background: var(--purple); }
+    #cursor-ring {
+        position: fixed; width: 38px; height: 38px;
+        border: 1px solid rgba(0,212,255,.3); border-radius: 50%;
+        pointer-events: none; z-index: 99998;
+        transform: translate(-50%,-50%);
+        transition: width .3s, height .3s, border-color .3s;
+    }
+    #cursor-ring.hover { width: 60px; height: 60px; border-color: rgba(123,47,255,.5); }
+
+    /* ─────────────────────────────────────────────────────
+       LOADER
+    ───────────────────────────────────────────────────── */
+    #loader {
+        position: fixed; inset: 0; background: #000; z-index: 99990;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 28px;
+        transition: opacity .6s;
+    }
+    #loader.gone { opacity: 0; pointer-events: none; }
+    .loader-logo {
+        font-family: 'Orbitron', monospace; font-size: .75rem;
+        letter-spacing: 10px; color: var(--cyan);
+        animation: flicker 1.6s ease-in-out infinite;
+    }
+    .loader-bar-wrap { width: 220px; height: 1px; background: rgba(0,212,255,.15); }
+    .loader-bar { height: 100%; background: linear-gradient(90deg,var(--cyan),var(--purple)); width: 0; animation: fillBar 2s ease forwards; }
+    .loader-pct { font-family: 'Orbitron', monospace; font-size: .6rem; letter-spacing: 4px; color: rgba(0,212,255,.5); }
+    @keyframes fillBar { to { width: 100%; } }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ─────────────────────────────────────────────────────
+       CANVAS + SCANLINES
+    ───────────────────────────────────────────────────── */
+    #bg-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .scanlines {
+        position: fixed; inset: 0; z-index: 1; pointer-events: none;
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.04) 2px, rgba(0,0,0,.04) 4px);
+    }
+
+    /* ─────────────────────────────────────────────────────
+       NAV
+    ───────────────────────────────────────────────────── */
+    #navbar {
+        position: fixed; top: 0; width: 100%; padding: 20px 60px;
+        z-index: 1000; display: flex; align-items: center; justify-content: space-between;
+        background: rgba(2,3,10,.5); backdrop-filter: blur(24px);
+        border-bottom: 1px solid rgba(0,212,255,.07); transition: background .3s, padding .3s;
+    }
+    #navbar.scrolled { background: rgba(2,3,10,.94); padding-top: 14px; padding-bottom: 14px; }
+    .nav-logo { font-family: 'Orbitron', monospace; font-size: 1rem; font-weight: 900; color: var(--cyan); letter-spacing: 4px; text-decoration: none; }
+    .nav-links { display: flex; list-style: none; gap: 40px; }
+    .nav-links a {
+        color: rgba(255,255,255,.45); text-decoration: none; font-size: .75rem;
+        letter-spacing: 3px; text-transform: uppercase; transition: color .3s; position: relative;
+    }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--cyan); transition: width .3s; }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; }
+    .nav-toggle span { display: block; width: 24px; height: 1px; background: var(--cyan); transition: all .3s; }
+
+    /* ─────────────────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────────────────── */
+    #home {
+        position: relative; height: 100vh;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2; overflow: hidden;
+    }
+    /* scanning line */
+    #home::after {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(0,212,255,.28), transparent);
+        animation: scanDown 6s ease-in-out infinite; z-index: 3; pointer-events: none;
+    }
+    @keyframes scanDown { 0%{top:0;opacity:0} 5%{opacity:1} 95%{opacity:1} 100%{top:100%;opacity:0} }
+
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; animation: orbFloat 10s ease-in-out infinite; }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle,rgba(123,47,255,.13),transparent 70%); top: -120px; right: -100px; }
+    .orb-2 { width: 360px; height: 360px; background: radial-gradient(circle,rgba(0,212,255,.09),transparent 70%); bottom: -60px; left: -60px; animation-delay: -5s; }
+    @keyframes orbFloat { 0%,100%{transform:translate(0,0)scale(1)} 33%{transform:translate(18px,-18px)scale(1.04)} 66%{transform:translate(-10px,12px)scale(.96)} }
+
+    .hud-overlay { position: absolute; inset: 0; padding: 56px 60px 40px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+    .hud-col { display: flex; flex-direction: column; gap: 7px; }
+    .hud-line { font-family: 'Orbitron', monospace; font-size: .55rem; letter-spacing: 3px; color: rgba(0,212,255,.22); text-transform: uppercase; }
+
+    .hero-social {
+        position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+        display: flex; flex-direction: column; gap: 18px; align-items: center;
+    }
+    .hero-social::before, .hero-social::after { content: ''; width: 1px; height: 60px; background: linear-gradient(to bottom, transparent, rgba(0,212,255,.22)); }
+    .hero-social::before { order: -1; }
+    .hero-social a { color: rgba(255,255,255,.22); font-size: 1rem; text-decoration: none; transition: all .3s; }
+    .hero-social a:hover { color: var(--cyan); text-shadow: 0 0 14px var(--cyan); }
+
+    .hero-content { text-align: center; position: relative; z-index: 2; }
+    .hero-subtitle { font-family: 'Orbitron', monospace; font-size: .7rem; letter-spacing: 8px; color: var(--cyan); text-transform: uppercase; margin-bottom: 24px; opacity: 0; transform: translateY(20px); }
+    .hero-title { font-family: 'Orbitron', monospace; font-size: clamp(2.4rem,8vw,5.5rem); font-weight: 900; background: linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; margin-bottom: 20px; opacity: 0; transform: translateY(20px); }
+    .hero-role { font-size: .9rem; letter-spacing: 3px; color: rgba(255,255,255,.32); text-transform: uppercase; margin-bottom: 56px; opacity: 0; transform: translateY(20px); }
+
+    /* glitch */
+    .glitch { position: relative; }
+    .glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .glitch::before { animation: g1 5s infinite; clip-path: polygon(0 0,100% 0,100% 42%,0 42%); }
+    .glitch::after  { animation: g2 5s infinite; clip-path: polygon(0 58%,100% 58%,100% 100%,0 100%); }
+    @keyframes g1 { 0%,88%,100%{transform:translate(-3px,-2px);opacity:0} 90%{transform:translate(-8px,2px);opacity:.65} 94%{transform:translate(5px,-2px);opacity:.65} 97%{transform:translate(-3px,3px);opacity:.65} }
+    @keyframes g2 { 0%,88%,100%{transform:translate(3px,2px);opacity:0} 90%{transform:translate(8px,-2px);opacity:.65} 94%{transform:translate(-5px,2px);opacity:.65} 97%{transform:translate(3px,-3px);opacity:.65} }
+
+    .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; opacity: 0; transform: translateY(20px); }
+
+    /* Buttons */
+    .btn-neon {
+        padding: 14px 40px; border: 1px solid var(--cyan); color: var(--cyan);
+        background: rgba(0,212,255,.05); font-family: 'Space Grotesk', sans-serif;
+        font-size: .78rem; letter-spacing: 3px; text-transform: uppercase;
+        text-decoration: none; cursor: pointer; transition: color .3s, box-shadow .3s;
+        position: relative; overflow: hidden; display: inline-block;
+    }
+    .btn-neon::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,var(--cyan),var(--purple)); opacity: 0; transition: opacity .3s; }
+    .btn-neon span { position: relative; z-index: 1; }
+    .btn-neon:hover { color: #000; box-shadow: 0 0 35px rgba(0,212,255,.35); }
+    .btn-neon:hover::before { opacity: 1; }
+
+    .btn-ghost { padding: 14px 40px; border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.5); background: transparent; font-family: 'Space Grotesk', sans-serif; font-size: .78rem; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: all .3s; display: inline-block; }
+    .btn-ghost:hover { border-color: var(--purple); color: var(--purple); box-shadow: 0 0 20px rgba(123,47,255,.2); }
+
+    .scroll-indicator { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; }
+    .scroll-text { font-family: 'Orbitron', monospace; font-size: .55rem; letter-spacing: 5px; color: rgba(255,255,255,.22); text-transform: uppercase; }
+    .scroll-line { width: 1px; height: 52px; background: linear-gradient(to bottom,var(--cyan),transparent); animation: scrollPulse 2s ease infinite; }
+    @keyframes scrollPulse { 0%,100%{opacity:.22;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(1.15)} }
+
+    /* ─────────────────────────────────────────────────────
+       SECTION BASE
+    ───────────────────────────────────────────────────── */
+    .section { position: relative; z-index: 2; padding: 120px 60px; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-label { font-family: 'Orbitron', monospace; font-size: .6rem; letter-spacing: 6px; color: var(--cyan); text-transform: uppercase; margin-bottom: 16px; opacity: .6; }
+    .section-title { font-family: 'Orbitron', monospace; font-size: clamp(1.6rem,4vw,2.8rem); font-weight: 700; margin-bottom: 60px; color: #fff; }
+    .section-title span { background: linear-gradient(135deg,var(--cyan),var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* title reveal: JS wraps each line in .title-mask */
+    .title-mask { overflow: hidden; display: block; }
+
+    /* ─────────────────────────────────────────────────────
+       GLASS CARD (3D tilt applied via JS)
+    ───────────────────────────────────────────────────── */
+    .glass-card {
+        background: rgba(255,255,255,.02); border: 1px solid rgba(0,212,255,.1);
+        backdrop-filter: blur(20px); border-radius: 2px; padding: 40px;
+        position: relative; overflow: hidden; will-change: transform;
+        transition: border-color .4s, box-shadow .4s;
+        transform-style: preserve-3d;
+    }
+    .glass-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(0,212,255,.04) 0%,transparent 60%); opacity: 0; transition: opacity .4s; }
+    .glass-card:hover { border-color: rgba(0,212,255,.3); }
+    .glass-card:hover::before { opacity: 1; }
+    /* corner brackets */
+    .cc { position: absolute; width: 18px; height: 18px; border-color: var(--cyan); border-style: solid; opacity: .35; transition: opacity .4s; }
+    .glass-card:hover .cc { opacity: .7; }
+    .cc.tl{top:-1px;left:-1px;border-width:1px 0 0 1px} .cc.tr{top:-1px;right:-1px;border-width:1px 1px 0 0}
+    .cc.bl{bottom:-1px;left:-1px;border-width:0 0 1px 1px} .cc.br{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+
+    /* shimmer overlay that slides on hover */
+    .glass-card::after { content: ''; position: absolute; top: -50%; left: -60%; width: 40%; height: 200%; background: linear-gradient(105deg,transparent,rgba(255,255,255,.04),transparent); transform: skewX(-15deg); transition: left .6s ease; pointer-events: none; }
+    .glass-card:hover::after { left: 130%; }
+
+    /* ─────────────────────────────────────────────────────
+       ABOUT
+    ───────────────────────────────────────────────────── */
+    #about { background: linear-gradient(180deg,var(--dark) 0%,var(--dark2) 100%); }
+    .about-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .card-label { font-family: 'Orbitron', monospace; font-size: .65rem; letter-spacing: 4px; color: var(--cyan); text-transform: uppercase; margin-bottom: 24px; }
+    .about-card p { color: rgba(255,255,255,.5); line-height: 1.85; font-size: .88rem; }
+    .info-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .info-list li { display: flex; gap: 12px; }
+    .info-key { font-family: 'Orbitron', monospace; font-size: .6rem; letter-spacing: 2px; color: var(--cyan); text-transform: uppercase; min-width: 72px; padding-top: 2px; flex-shrink: 0; }
+    .info-val { color: rgba(255,255,255,.55); font-size: .87rem; }
+    .social-row { display: flex; gap: 12px; margin-top: 28px; }
+    .social-btn { width: 36px; height: 36px; border: 1px solid rgba(0,212,255,.18); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.32); text-decoration: none; font-size: .85rem; transition: all .3s; }
+    .social-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 20px rgba(0,212,255,.2); }
+    .btn-cv { display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; padding: 12px 28px; border: 1px solid var(--pink); color: var(--pink); background: rgba(255,0,110,.05); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; transition: all .3s; }
+    .btn-cv:hover { background: var(--pink); color: #000; box-shadow: 0 0 28px rgba(255,0,110,.3); }
+    .expertise-item { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .expertise-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .exp-icon { width: 38px; height: 38px; flex-shrink: 0; border: 1px solid rgba(0,212,255,.2); display: flex; align-items: center; justify-content: center; color: var(--cyan); font-size: .9rem; }
+    .exp-text h6 { font-size: .85rem; font-weight: 600; margin-bottom: 4px; color: #fff; }
+    .exp-text p  { font-size: .76rem; color: rgba(255,255,255,.35); }
+
+    /* ─────────────────────────────────────────────────────
+       HORIZONTAL EXPERIENCE (pinned)
+    ───────────────────────────────────────────────────── */
+    .horiz-pin { position: relative; z-index: 2; overflow: hidden; background: var(--dark); }
+    .horiz-track { display: flex; }
+
+    .exp-slide {
+        width: 100vw; min-height: 100vh; flex-shrink: 0;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 120px 120px 80px;
+        border-right: 1px solid rgba(0,212,255,.06);
+        position: relative; overflow: hidden;
+    }
+    .exp-slide::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(123,47,255,.05) 0%, transparent 60%); pointer-events: none; }
+
+    .exp-slide-bg-num {
+        position: absolute; right: 60px; top: 50%; transform: translateY(-50%);
+        font-family: 'Orbitron', monospace; font-size: 18vw; font-weight: 900; line-height: 1;
+        color: rgba(0,212,255,.04); pointer-events: none; user-select: none;
+    }
+    .exp-slide-index { font-family: 'Orbitron', monospace; font-size: .6rem; letter-spacing: 6px; color: rgba(0,212,255,.5); text-transform: uppercase; margin-bottom: 32px; }
+    .exp-slide-date  { font-family: 'Orbitron', monospace; font-size: .65rem; letter-spacing: 4px; color: var(--cyan); text-transform: uppercase; margin-bottom: 20px; }
+    .exp-slide-title { font-family: 'Orbitron', monospace; font-size: clamp(1.8rem,3.5vw,3rem); font-weight: 700; color: #fff; margin-bottom: 14px; max-width: 700px; line-height: 1.2; }
+    .exp-slide-co    { font-size: .88rem; letter-spacing: 2px; color: rgba(255,255,255,.35); text-transform: uppercase; margin-bottom: 32px; }
+    .exp-slide-desc  { font-size: .9rem; color: rgba(255,255,255,.45); line-height: 1.85; max-width: 580px; }
+
+    /* intro slide */
+    .exp-slide-intro { background: linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%); }
+    .exp-slide-intro .exp-intro-title { font-family: 'Orbitron', monospace; font-size: clamp(2rem,5vw,4.5rem); font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 24px; }
+    .exp-slide-intro .exp-intro-title span { background: linear-gradient(135deg,var(--cyan),var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .exp-slide-intro p { color: rgba(255,255,255,.35); font-size: .85rem; letter-spacing: 3px; text-transform: uppercase; }
+
+    /* scroll hint arrow */
+    .scroll-hint-x {
+        position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+        display: flex; align-items: center; gap: 12px;
+        font-family: 'Orbitron', monospace; font-size: .55rem;
+        letter-spacing: 4px; color: rgba(0,212,255,.35); text-transform: uppercase;
+        animation: hintPulse 2s ease-in-out infinite;
+    }
+    .scroll-hint-x .arrow-line { width: 50px; height: 1px; background: linear-gradient(to right,var(--cyan),transparent); }
+    @keyframes hintPulse { 0%,100%{opacity:.3;transform:translateX(-50%) translateX(0)} 50%{opacity:1;transform:translateX(-50%) translateX(8px)} }
+
+    /* progress dots */
+    .exp-dots { position: fixed; right: 30px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; gap: 10px; z-index: 100; }
+    .exp-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.2); border: 1px solid rgba(0,212,255,.3); transition: all .3s; }
+    .exp-dot.active { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); height: 16px; border-radius: 3px; }
+
+    /* ─────────────────────────────────────────────────────
+       RESUME (education + skills)
+    ───────────────────────────────────────────────────── */
+    #resume { background: var(--dark2); }
+    .resume-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-bottom: 70px; }
+    .col-heading { font-family: 'Orbitron', monospace; font-size: .65rem; letter-spacing: 5px; color: rgba(255,255,255,.22); text-transform: uppercase; margin-bottom: 36px; display: flex; align-items: center; gap: 14px; }
+    .col-heading::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right,rgba(0,212,255,.22),transparent); }
+    .tline-item { position: relative; padding-left: 26px; margin-bottom: 38px; }
+    .tline-item::before { content: ''; position: absolute; left: 0; top: 5px; width: 7px; height: 7px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 10px var(--cyan); }
+    .tline-item::after  { content: ''; position: absolute; left: 3px; top: 18px; width: 1px; height: calc(100% + 14px); background: linear-gradient(to bottom,rgba(0,212,255,.22),transparent); }
+    .tline-item:last-child::after { display: none; }
+    .tline-date  { font-family: 'Orbitron', monospace; font-size: .6rem; letter-spacing: 3px; color: var(--cyan); text-transform: uppercase; margin-bottom: 6px; }
+    .tline-title { font-size: .92rem; font-weight: 600; color: #fff; margin-bottom: 3px; }
+    .tline-sub   { font-size: .78rem; color: rgba(255,255,255,.32); margin-bottom: 8px; }
+    .tline-desc  { font-size: .8rem; color: rgba(255,255,255,.38); line-height: 1.75; }
+
+    /* Skills */
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 60px; }
+    .skill-item { margin-bottom: 8px; }
+    .skill-row  { display: flex; justify-content: space-between; margin-bottom: 7px; }
+    .skill-name { font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.45); }
+    .skill-pct  { font-family: 'Orbitron', monospace; font-size: .65rem; color: var(--cyan); }
+    .skill-bar  { height: 1px; background: rgba(255,255,255,.07); position: relative; }
+    .skill-fill { height: 100%; width: 0; background: linear-gradient(90deg,var(--cyan),var(--purple)); transition: width 1.8s cubic-bezier(.16,1,.3,1); position: relative; }
+    .skill-fill::after { content: ''; position: absolute; right: -3px; top: -2.5px; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 10px var(--cyan); opacity: 0; transition: opacity .5s 1.5s; }
+    .skill-fill.lit::after { opacity: 1; }
+
+    /* ─────────────────────────────────────────────────────
+       STATS
+    ───────────────────────────────────────────────────── */
+    .stats-wrap { position: relative; z-index: 2; border-top: 1px solid rgba(0,212,255,.07); border-bottom: 1px solid rgba(0,212,255,.07); background: rgba(0,212,255,.013); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); }
+    .stat-item { padding: 60px 24px; text-align: center; border-right: 1px solid rgba(0,212,255,.07); position: relative; overflow: hidden; transition: background .4s; }
+    .stat-item:last-child { border-right: none; }
+    .stat-item:hover { background: rgba(0,212,255,.03); }
+    .stat-item::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: linear-gradient(90deg,transparent,var(--cyan),transparent); transform: scaleX(0); transition: transform .5s; }
+    .stat-item:hover::before { transform: scaleX(1); }
+    .stat-icon { font-size: .85rem; color: rgba(0,212,255,.22); margin-bottom: 16px; }
+    .stat-num { font-family: 'Orbitron', monospace; font-size: clamp(1.8rem,3.5vw,3rem); font-weight: 900; background: linear-gradient(135deg,var(--cyan),var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; display: block; }
+    .stat-label { font-size: .68rem; letter-spacing: 3px; color: rgba(255,255,255,.22); text-transform: uppercase; }
+
+    /* ─────────────────────────────────────────────────────
+       PATENTS
+    ───────────────────────────────────────────────────── */
+    #blog { background: var(--dark); }
+    .patents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .patent-card { display: flex; gap: 24px; align-items: flex-start; padding: 28px; }
+    .patent-img { width: 150px; height: 130px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,212,255,.1); filter: brightness(.55) saturate(.4); transition: all .5s; }
+    .patent-card:hover .patent-img { filter: brightness(.85) saturate(.9); border-color: rgba(0,212,255,.3); }
+    .patent-title { font-family: 'Orbitron', monospace; font-size: .68rem; letter-spacing: .5px; color: #fff; margin-bottom: 10px; line-height: 1.55; }
+    .patent-appnum { font-family: 'Orbitron', monospace; font-size: .6rem; color: var(--cyan); margin-bottom: 12px; letter-spacing: 1px; }
+    .patent-desc { font-size: .8rem; color: rgba(255,255,255,.38); line-height: 1.7; margin-bottom: 16px; }
+    .read-more { font-size: .7rem; letter-spacing: 3px; color: var(--cyan); text-decoration: none; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; transition: gap .3s; }
+    .read-more:hover { gap: 14px; }
+
+    /* ─────────────────────────────────────────────────────
+       CONTACT
+    ───────────────────────────────────────────────────── */
+    #contact { background: var(--dark2); }
+    .contact-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+    .contact-item { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
+    .contact-icon { width: 42px; height: 42px; flex-shrink: 0; border: 1px solid rgba(0,212,255,.18); display: flex; align-items: center; justify-content: center; color: var(--cyan); }
+    .contact-detail h6 { font-size: .65rem; letter-spacing: 2px; color: rgba(255,255,255,.28); text-transform: uppercase; margin-bottom: 4px; }
+    .contact-detail p  { font-size: .88rem; color: rgba(255,255,255,.6); }
+    #globe-canvas {
+        width: 100%; height: 380px; display: block;
+        border: 1px solid rgba(0,212,255,.12); border-radius: 2px;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────────────────── */
+    footer { position: relative; z-index: 2; padding: 28px 60px; text-align: center; border-top: 1px solid rgba(0,212,255,.07); background: rgba(0,0,0,.4); }
+    footer p { font-size: .7rem; letter-spacing: 2px; color: rgba(255,255,255,.18); }
+    footer a { color: var(--cyan); text-decoration: none; }
+
+    /* ─────────────────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+        #navbar { padding: 18px 30px; }
+        .section { padding: 90px 30px; }
+        .about-grid { grid-template-columns: 1fr; }
+        .resume-cols { grid-template-columns: 1fr; gap: 48px; }
+        .skills-grid { grid-template-columns: 1fr; }
+        .patents-grid { grid-template-columns: 1fr; }
+        .contact-inner { grid-template-columns: 1fr; }
+        .hero-social { display: none; }
+        .hud-overlay { padding: 56px 30px 40px; }
+        footer { padding: 28px 30px; }
+        .exp-slide { padding: 100px 40px 80px; }
+        .exp-slide-bg-num { font-size: 25vw; right: 20px; }
+    }
+    @media (max-width: 768px) {
+        .nav-links { display: none; position: fixed; top: 0; right: 0; height: 100vh; width: 240px; background: rgba(2,3,10,.97); flex-direction: column; justify-content: center; align-items: center; gap: 30px; transform: translateX(100%); transition: transform .4s; z-index: 999; }
+        .nav-links.open { display: flex; transform: translateX(0); }
+        .nav-toggle { display: flex; }
+        .stats-grid { grid-template-columns: repeat(2,1fr); }
+        .stat-item:nth-child(2) { border-right: none; }
+        .stat-item:nth-child(3), .stat-item:nth-child(4) { border-top: 1px solid rgba(0,212,255,.07); }
+        /* On mobile, horizontal section becomes vertical */
+        .horiz-pin { overflow: visible; }
+        .horiz-track { flex-direction: column; width: auto !important; transform: none !important; }
+        .exp-slide { width: 100%; min-height: auto; padding: 80px 30px; }
+        .exp-slide-bg-num { display: none; }
+        .exp-dots { display: none !important; }
+        .scroll-hint-x { display: none; }
+        .patent-card { flex-direction: column; }
+        .patent-img { width: 100%; height: 180px; }
+        .hud-overlay { display: none; }
+        .hero-buttons { flex-direction: column; align-items: center; }
+    }
+    </style>
 </head>
-<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
-    <!-- <a href="components.html" class="btn btn-primary btn-component" data-spy="affix" data-offset-top="600"><i class="ti-shift-left-alt"></i> Components</a> -->
-    <header class="header">
-        <div class="container">
-            <ul class="social-icons pt-3">
-                <li class="social-item"><a class="social-link text-light" href="https://www.linkedin.com/in/shashanksangu/"><i class="ti-linkedin" aria-hidden="true"></i></a></li>
-                <li class="social-item"><a class="social-link text-light" href="https://www.instagram.com/__shashanksangu__/"><i class="ti-instagram" aria-hidden="true"></i></a></li>
-                <li class="social-item"><a class="social-link text-light" href="https://github.com/shashanksangu"><i class="ti-github" aria-hidden="true"></i></a></li>
-            </ul>  
-            <div class="header-content">
-                <h4 class="header-subtitle" >Hello, I am</h4>
-                <h1 class="header-title">Shashank Sangu</h1>
-                <h6 class="header-mono" >Senior Software Developer | AI Researcher</h6>
-                <button id="printButton" class="btn btn-primary btn-rounded" onclick="printResume()"> <i class="ti-printer pr-2"></i> Print Resume </button>
-            </div>
+<body>
+
+<!-- Scroll progress -->
+<div id="scroll-progress"></div>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Loader -->
+<div id="loader">
+    <div class="loader-logo">INITIALIZING SYSTEM</div>
+    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+</div>
+
+<!-- Scanlines + Canvas -->
+<div class="scanlines"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+    <a href="#home" class="nav-logo">SS.DEV</a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#experience">Career</a></li>
+        <li><a href="#blog">Patents</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section id="home">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="hud-overlay">
+        <div class="hud-col">
+            <div class="hud-line">LAT: 12.9716° N</div>
+            <div class="hud-line">LON: 77.5946° E</div>
+            <div class="hud-line">BLR / INDIA</div>
         </div>
-    </header>
-    <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-white" data-spy="affix" data-offset-top="510">
-        <div class="container">
-            <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse mt-sm-20 navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item">
-                        <a href="#home" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#about" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#resume" class="nav-link">Resume</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav brand">
-                    <img src="assets/imgs/avatar.jpg" alt="" class="brand-img">
-                    <li class="brand-txt">
-                        <h5 class="brand-title">Shashank Sangu</h5>
-                        <div class="brand-subtitle">AI Researcher | Software Developer </div>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ml-auto">
-                    <!--
-                    <li class="nav-item">
-                        <a href="#portfolio" class="nav-link">Portfolio</a>
-                    </li>
-                    -->
-                    <li class="nav-item">
-                        <a href="#blog" class="nav-link">Patents</a>
-                    </li>
-                    <li class="nav-item last-item">
-                        <a href="#contact" class="nav-link">Contact</a>
-                    </li>
-                </ul>
-            </div>
+        <div class="hud-col" style="align-items:flex-end">
+            <div class="hud-line">SYS: ONLINE</div>
+            <div class="hud-line">NET: ACTIVE</div>
+            <div class="hud-line">VER: 2026.06</div>
         </div>
-    </nav>
-    <div class="container-fluid">
-        <div id="about" class="row about-section">
-            <div class="col-lg-4 about-card">
-                <h3 class="font-weight-light">Who am I ?</h3>
-                <span class="line mb-5"></span>
-                <h5 class="mb-3">AI Researcher | Software Developer Located In India</h5>
-                <p class="mt-20">With a deep passion for AI and cutting-edge technology, I constantly strive to innovate and push the boundaries of what's possible in the tech world. My journey has led me to develop AI solutions, optimize proprietary software, build automations, and design frameworks, earning recognition and patents along the way. Always eager to learn and grow, I love connecting with people around the world and exploring the diverse opportunities life has to offer.</p>
-                <a href="assets/docs/Resume.pdf" download="Shashank_Resume.pdf" class="btn btn-outline-danger"><i class="icon-down-circled2"></i>Download My CV</a>
+    </div>
+    <div class="hero-social">
+        <a href="https://www.linkedin.com/in/shashanksangu/" class="ti-linkedin" title="LinkedIn"></a>
+        <a href="https://www.instagram.com/__shashanksangu__/" class="ti-instagram" title="Instagram"></a>
+        <a href="https://github.com/shashanksangu" class="ti-github" title="GitHub"></a>
+    </div>
+    <div class="hero-content">
+        <p class="hero-subtitle" id="heroSub">Senior Software Developer &nbsp;·&nbsp; AI Researcher</p>
+        <h1 class="hero-title glitch" data-text="Shashank Sangu" id="heroTitle">Shashank Sangu</h1>
+        <p class="hero-role" id="heroRole">Building the future, one algorithm at a time</p>
+        <div class="hero-buttons" id="heroButtons">
+            <a href="#about" class="btn-neon mag-btn"><span>Explore</span></a>
+            <a href="assets/docs/Resume.pdf" download="Shashank_Resume.pdf" class="btn-ghost mag-btn">Download CV</a>
+        </div>
+    </div>
+    <div class="scroll-indicator" id="scrollInd">
+        <span class="scroll-text">Scroll</span>
+        <div class="scroll-line"></div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABOUT
+══════════════════════════════════════════ -->
+<section class="section" id="about">
+    <div class="section-inner">
+        <p class="section-label">01 — About Me</p>
+        <h2 class="section-title">Who Am <span>I?</span></h2>
+        <div class="about-grid">
+            <div class="glass-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <p class="card-label">Profile</p>
+                <p class="about-card">With a deep passion for AI and cutting-edge technology, I constantly strive to innovate and push the boundaries of what's possible in the tech world.</p>
+                <br>
+                <p class="about-card">My journey has led me to develop AI solutions, optimize proprietary software, build automations, and design frameworks, earning recognition and patents along the way.</p>
+                <a href="assets/docs/Resume.pdf" download="Shashank_Resume.pdf" class="btn-cv">Download CV</a>
             </div>
-            <div class="col-lg-4 about-card">
-                <h3 class="font-weight-light">Personal Info</h3>
-                <span class="line mb-5"></span>
-                <ul class="mt40 info list-unstyled">
-                    <li><span>Birthday</span> : 2nd July</li>
-                    <li><span>Email</span> : sangushashanksai@gmail.com</li>
-                    <!--<li><span>Phone</span> : +91 9849625699</li>-->
-                    <li><span>Address</span> :  Bengaluru, Karnataka, India</li>
+            <div class="glass-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <p class="card-label">Personal Info</p>
+                <ul class="info-list">
+                    <li><span class="info-key">Birthday</span><span class="info-val">2nd July</span></li>
+                    <li><span class="info-key">Email</span><span class="info-val">sangushashanksai@gmail.com</span></li>
+                    <li><span class="info-key">Location</span><span class="info-val">Bengaluru, Karnataka, India</span></li>
                 </ul>
-                <ul class="social-icons pt-3">
-                    <li class="social-item"><a class="social-link" href="https://www.linkedin.com/in/shashanksangu/"><i class="ti-linkedin" aria-hidden="true"></i></a></li>
-                    <li class="social-item"><a class="social-link" href="https://www.instagram.com/__shashanksangu__/"><i class="ti-instagram" aria-hidden="true"></i></a></li>
-                    <li class="social-item"><a class="social-link" href="https://github.com/shashanksangu"><i class="ti-github" aria-hidden="true"></i></a></li>
-                </ul>  
+                <div class="social-row">
+                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn"><i class="ti-linkedin"></i></a>
+                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn"><i class="ti-instagram"></i></a>
+                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn"><i class="ti-github"></i></a>
+                </div>
             </div>
-            <div class="col-lg-4 about-card">
-                <h3 class="font-weight-light">My Expertise</h3>
-                <span class="line mb-5"></span>
-                <div class="row">
-                    <div class="col-1 text-danger pt-1"><i class="ti-widget icon-lg"></i></div>
-                    <div class="col-10 ml-auto mr-3">
-                        <h6>Deep Learning</h6>
-                        <p class="subtitle"> Build - Finetune - Deploy - Optimize</p>
-                        <hr>
-                    </div>
+            <div class="glass-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <p class="card-label">Expertise</p>
+                <div class="expertise-item">
+                    <div class="exp-icon"><i class="ti-widget"></i></div>
+                    <div class="exp-text"><h6>Deep Learning</h6><p>Build &nbsp;·&nbsp; Finetune &nbsp;·&nbsp; Deploy &nbsp;·&nbsp; Optimize</p></div>
                 </div>
-                <div class="row">
-                    <div class="col-1 text-danger pt-1"><i class="ti-loop icon-lg"></i></div>
-                    <div class="col-10 ml-auto mr-3">
-                        <h6>Software Development</h6>
-                        <p class="subtitle">Design - Implement - Deploy</p>
-                        <hr>
-                    </div>
+                <div class="expertise-item">
+                    <div class="exp-icon"><i class="ti-loop"></i></div>
+                    <div class="exp-text"><h6>Software Development</h6><p>Design &nbsp;·&nbsp; Implement &nbsp;·&nbsp; Deploy</p></div>
                 </div>
-                <div class="row">
-                    <div class="col-1 text-danger pt-1"><i class="ti-stats-up icon-lg"></i></div>
-                    <div class="col-10 ml-auto mr-3">
-                        <h6>Product Management</h6>
-                        <p class="subtitle"> Plan - Execute - Monitor - Control - Closure </p>
-                        <hr>
-                    </div>
+                <div class="expertise-item">
+                    <div class="exp-icon"><i class="ti-stats-up"></i></div>
+                    <div class="exp-text"><h6>Product Management</h6><p>Plan &nbsp;·&nbsp; Execute &nbsp;·&nbsp; Monitor &nbsp;·&nbsp; Control</p></div>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <!--Resume Section-->
-    <section class="section" id="resume">
-        <div class="container">
-            <h2 class="mb-5"><span class="text-danger">My</span> Resume</h2>
-            <div class="row">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card">
-                       <div class="card-header">
-                            <div class="mt-2">
-                                <h4>Expertise</h4>
-                                <span class="line"></span>  
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="title text-danger">Feb 2023 - Present</h6>
-                            <P style="margin-bottom:0;"><b>Software Engineer - II</b></P>
-                            <P>at Fujitsu Research of India Private Limited</P>
-                            <P class="subtitle">I optimized ML applications, such as scikit-learn kernels, for the ARM ecosystem using SIMD and ARM intrinsics for improved performance. I also developed a custom framework for internal software exchange between Japan and India, which automates issue detection in development and software optimization. Currently, I am focused on protecting data in use with ARM CCA architecture.</P>
-                            <hr>
-                            <h6 class="title text-danger">Jun 2019 - Feb 2023</h6>
-                            <P style="margin-bottom:0;"><b>Software Engineer - AI/ML</b></P>
-                            <P>at Wellnesys Technologies Private Limited</P>
-                            <P class="subtitle">I advanced yoga integration with YogiFi, a smart yoga mat, by developing custom models for real-time detection and correction, and creating a human activity detection framework using computer vision and wearable (apple watch) gyro data. My work included deep learning applications, Google Cloud services management, and enhancing user experience and posture recognition, along with developing automation scripts and customizing algorithms.</P>
-                            <hr>
-                            <h6 class="title text-danger">Dec 2018 - Apr 2019</h6>
-                            <P style="margin-bottom:0;"><b>AI Researcher</b></P>
-                            <P>at Wellnesys Technologies Private Limited</P>
-                            <P class="subtitle">Developed proprietary software that can evaluate Yoga postures in real-time on a smart yoga mat called YogiFi.</P>
-                        </div>
-                    </div>
+<!-- ══════════════════════════════════════════
+     HORIZONTAL EXPERIENCE (pinned)
+══════════════════════════════════════════ -->
+<div class="horiz-pin" id="experience">
+    <div class="horiz-track" id="exp-track">
+
+        <!-- Slide 0: Intro -->
+        <div class="exp-slide exp-slide-intro">
+            <div class="exp-slide-bg-num">00</div>
+            <p class="section-label">02 — Experience</p>
+            <h2 class="exp-intro-title">My <span>Journey</span></h2>
+            <p>Scroll to navigate through time →</p>
+            <div class="scroll-hint-x">
+                <div class="arrow-line"></div>
+                Scroll to explore
+            </div>
+        </div>
+
+        <!-- Slide 1 -->
+        <div class="exp-slide">
+            <div class="exp-slide-bg-num">01</div>
+            <div class="exp-slide-index">Experience 01 / 03</div>
+            <div class="exp-slide-date">Feb 2023 — Present</div>
+            <h3 class="exp-slide-title">Software Engineer — II</h3>
+            <div class="exp-slide-co">Fujitsu Research of India Pvt. Ltd.</div>
+            <p class="exp-slide-desc">Optimized ML applications such as scikit-learn kernels for the ARM ecosystem using SIMD and ARM intrinsics. Developed a custom internal software exchange framework. Currently focused on protecting data in use with ARM CCA architecture.</p>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="exp-slide">
+            <div class="exp-slide-bg-num">02</div>
+            <div class="exp-slide-index">Experience 02 / 03</div>
+            <div class="exp-slide-date">Jun 2019 — Feb 2023</div>
+            <h3 class="exp-slide-title">Software Engineer — AI/ML</h3>
+            <div class="exp-slide-co">Wellnesys Technologies Pvt. Ltd.</div>
+            <p class="exp-slide-desc">Advanced yoga integration with YogiFi, a smart yoga mat — developing custom real-time detection models and a human activity detection framework using computer vision and Apple Watch gyro data.</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="exp-slide">
+            <div class="exp-slide-bg-num">03</div>
+            <div class="exp-slide-index">Experience 03 / 03</div>
+            <div class="exp-slide-date">Dec 2018 — Apr 2019</div>
+            <h3 class="exp-slide-title">AI Researcher</h3>
+            <div class="exp-slide-co">Wellnesys Technologies Pvt. Ltd.</div>
+            <p class="exp-slide-desc">Developed proprietary software that evaluates Yoga postures in real-time on the YogiFi smart yoga mat. Built the foundational computer vision pipeline that powers the product.</p>
+        </div>
+
+    </div>
+
+    <!-- Progress dots (shown by JS when pinned) -->
+    <div class="exp-dots" id="expDots">
+        <div class="exp-dot active"></div>
+        <div class="exp-dot"></div>
+        <div class="exp-dot"></div>
+        <div class="exp-dot"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     RESUME — Education + Skills
+══════════════════════════════════════════ -->
+<section class="section" id="resume">
+    <div class="section-inner">
+        <p class="section-label">03 — Education &amp; Skills</p>
+        <h2 class="section-title">My <span>Background</span></h2>
+        <div class="resume-cols">
+            <div>
+                <div class="col-heading">Education</div>
+                <div class="tline-item">
+                    <div class="tline-date">2015 — 2019</div>
+                    <div class="tline-title">B.Tech. Information Technology</div>
+                    <div class="tline-sub">Jawaharlal Nehru Technological University, Kakinada</div>
                 </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card">
-                       <div class="card-header">
-                            <div class="mt-2">
-                                <h4>Education</h4>
-                                <span class="line"></span>  
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="title text-danger">2015 - 2019</h6>
-                            <P>B.Tech. Information Technology</P>
-                            <P class="subtitle">Jawaharlal Nehru Technological University, Kakinada</P>
-                            <hr>
-                            <h6 class="title text-danger">2013 - 2015</h6>
-                            <P>Mathematics - Physics - Chemistry - Informatics Practices (12th Grade)</P>
-                            <P class="subtitle">MP &amp; EV English Medium School (Central Board of Secondary Education)</P>
-                            <hr>
-                            <h6 class="title text-danger">2012 - 2013</h6>
-                            <P>High School Degree (10th Grade)</P>
-                            <P class="subtitle">Sri Chaitanya Vidya Niketan (Central Board of Secondary Education)</P>
-                            
-                        </div>
-                    </div>
+                <div class="tline-item">
+                    <div class="tline-date">2013 — 2015</div>
+                    <div class="tline-title">Mathematics · Physics · Chemistry (12th)</div>
+                    <div class="tline-sub">MP &amp; EV English Medium School (CBSE)</div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="card">
-                       <div class="card-header">
-                            <div class="pull-left">
-                                <h4 class="mt-2">Skills</h4>
-                                <span class="line"></span>  
-                            </div>
-                        </div>
-                        <div class="card-body pb-2">
-                           <h6>Python Programing</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 97%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Surrogate Modelling</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 60%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>C/ C++</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 70%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Fast API</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 80%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Tensorflow/ PyTorch</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 90%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Cloud - GCP/ AWS/ Azure</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 80%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                       <div class="card-header">
-                            <div class="pull-left">
-                                <h4 class="mt-2">Languages</h4>
-                                <span class="line"></span>  
-                            </div>
-                        </div>
-                        <div class="card-body pb-2">
-                           <h6>English</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 90%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Hindi</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 90%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Telugu</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 90%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6>Japanese</h6>
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 30%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="tline-item">
+                    <div class="tline-date">2012 — 2013</div>
+                    <div class="tline-title">High School — 10th Grade</div>
+                    <div class="tline-sub">Sri Chaitanya Vidya Niketan (CBSE)</div>
+                </div>
+            </div>
+            <div>
+                <div class="col-heading">Languages</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">English</span><span class="skill-pct">90%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Hindi</span><span class="skill-pct">90%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Telugu</span><span class="skill-pct">90%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Japanese</span><span class="skill-pct">30%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="30"></div></div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <section class="section bg-dark text-center">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-md-6 col-lg-3">
-                    <div class="row ">
-                        <div class="col-5 text-right text-light border-right py-3">
-                            <div class="m-auto"><i class="ti-alarm-clock icon-xl"></i></div>
-                        </div>
-                        <div class="col-7 text-left py-3">
-                            <h1 id="hours-worked"  class="text-danger font-weight-bold font40">0</h1>
-                            <p class="text-light mb-1">Hours Worked</p>
-                        </div>
-                    </div>
+        <!-- Skills -->
+        <div class="col-heading" style="margin-bottom:40px">Technical Skills</div>
+        <div class="skills-grid">
+            <div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Python</span><span class="skill-pct">97%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="97"></div></div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="row">
-                        <div class="col-5 text-right text-light border-right py-3">
-                            <div class="m-auto"><i class="ti-layers-alt icon-xl"></i></div>
-                        </div>
-                        <div class="col-7 text-left py-3">
-                            <h1 id="projects-count" class="text-danger font-weight-bold font40">0</h1>
-                            <p class="text-light mb-1">Project Finished</p>
-                        </div>
-                    </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">TensorFlow / PyTorch</span><span class="skill-pct">90%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="90"></div></div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="row">
-                        <div class="col-5 text-right text-light border-right py-3">
-                            <div class="m-auto"><i class="ti-face-smile icon-xl"></i></div>
-                        </div>
-                        <div class="col-7 text-left py-3">
-                            <h1 class="text-danger font-weight-bold font40">4K</h1>
-                            <p class="text-light mb-1">Happy Customers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="row">
-                        <div class="col-5 text-right text-light border-right py-3">
-                            <div class="m-auto"><i class="ti-heart-broken icon-xl"></i></div>
-                        </div>
-                        <div class="col-7 text-left py-3">
-                            <h1 class="text-danger font-weight-bold font40">5k</h1>
-                            <p class="text-light mb-1">Coffee Cups Drinked</p>
-                        </div>
-                    </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">FastAPI</span><span class="skill-pct">80%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="80"></div></div>
                 </div>
             </div>
-        </div>
-    </section>
-
-   
-   
-    <!-- Portfolio Section -->
-    <!--
-    <section class="section bg-custom-gray" id="portfolio">
-        <div class="container">
-            <h1 class="mb-5"><span class="text-danger">My</span> Portfolio</h1>
-            <div class="portfolio">
-                <div class="filters">
-                    <a href="#" data-filter=".new" class="active">
-                        New
-                    </a>
-                    <a href="#" data-filter=".advertising">
-                        Advertising
-                    </a>
-                    <a href="#" data-filter=".branding">
-                        Branding
-                    </a>
-                    <a href="#" data-filter=".web">
-                        Web
-                    </a>
+            <div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Cloud — GCP / AWS / Azure</span><span class="skill-pct">80%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="80"></div></div>
                 </div>
-                <div class="portfolio-container"> 
-                    <div class="col-md-6 col-lg-4 web new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/web-1.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/web-1.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">WEB</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>   
-                        </div>             
-                    </div>
-                    <div class="col-md-6 col-lg-4 web new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/web-2.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/web-2.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">WEB</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div> 
-                        </div>                         
-                    </div>
-                    <div class="col-md-6 col-lg-4 advertising new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/advertising-2.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">                         
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/advertising-2.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">ADVERSTISING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>    
-                        </div>              
-                    </div> 
-                    <div class="col-md-6 col-lg-4 web">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/web-4.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/web-4.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">WEB</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                     
-                    </div>
-
-                    <div class="col-md-6 col-lg-4 advertising"> 
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/advertising-1.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">                               
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/advertising-1.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">ADVERSITING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                       
-                    </div> 
-                    <div class="col-md-6 col-lg-4 web new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/web-3.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">  
-                           <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/web-3.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">WEB</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                     
-                    </div>
-                    <div class="col-md-6 col-lg-4 advertising new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/advertising-3.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">       
-                           <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/advertising-3.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">ADVERSITING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                       
-                    </div> 
-                    <div class="col-md-6 col-lg-4 advertising new"> 
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/advertising-4.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">            
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/advertising-4.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">ADVERTISING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>
-                                
-                    </div> 
-                    <div class="col-md-6 col-lg-4 branding new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/branding-1.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">                        
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/branding-1.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">BRANDING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div> 
-                        </div>
-                    </div> 
-                    <div class="col-md-6 col-lg-4 branding">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/branding-2.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">  
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/branding-2.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">BRANDING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                     
-                    </div> 
-                    <div class="col-md-6 col-lg-4 branding new">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/branding-3.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">   
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/branding-3.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">BRANDING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                    
-                    </div> 
-                    <div class="col-md-6 col-lg-4 branding">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/branding-4.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">                      
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/branding-4.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">BRANDING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                      
-                    </div> 
-                    <div class="col-md-6 col-lg-4 branding">
-                        <div class="portfolio-item">
-                            <img src="assets/imgs/branding-5.jpg" class="img-fluid" alt="Download free bootstrap 4 admin dashboard, free boootstrap 4 templates">          
-                            <div class="content-holder">
-                                <a class="img-popup" href="assets/imgs/branding-5.jpg"></a>
-                                <div class="text-holder">
-                                    <h6 class="title">BRANDING</h6>
-                                    <p class="subtitle">Expedita corporis doloremque velit in totam!</p>
-                                </div>
-                            </div>
-                        </div>                                                   
-                    </div>
-                </div> 
-            </div>  
-        </div>            
-    </section>
-    -->
-    <!-- End of portfolio section -->
-    
-
-
-
-
-    <section class="section" id="blog">
-        <div class="container">
-            <h2 class="mb-5"><span class="text-danger">My</span> Patents</h2>
-            <div class="row">
-                <div class="blog-card">
-                    <div class="img-holder">
-                        <img src="assets/imgs/P1.jpeg" >
-                    </div>
-                    <div class="content-holder">
-                        <h6 class="title">A DIGITAL ASSISTING DEVICE TO MONITOR AND TRAIN ACTIVITIES OF A USER</h6>
-
-                        <p class="post-details">
-                            <a href="https://iprsearch.ipindia.gov.in/PublicSearch/"> <b>Application Number: </b>202041053954</a>
-                        </p>
-                        
-                        <p>Developed a System &amp; Method to track one or more Human
-                            Activities which includes Activity Input Module Configured to
-                            received Plurality of Inputs</p>
-
-                        <a href="https://iprsearch.ipindia.gov.in/PublicSearch/" class="read-more">Read more <i class="ti-angle-double-right"></i></a>
-                    </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">C / C++</span><span class="skill-pct">70%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="70"></div></div>
                 </div>
-                <!-- end of blog wrapper -->
-
-                <!-- blog-card -->
-                <div class="blog-card">
-                    <div class="img-holder">
-                        <img src="assets/imgs/P2.jpeg" >
-                    </div>
-                    <div class="content-holder">
-                        <h6 class="title">SYSTEM AND METHOD FOR PERFORMANCE EVALUATION OF AN EXERCISE PERFORMED BY A USER</h6>
-
-                        <p class="post-details">
-                            <a href="https://iprsearch.ipindia.gov.in/PublicSearch/"> <b>Application Number: </b>202041000701</a>
-                        </p>
-                        
-                        <p>Developed a System and Method for Performance Evaluation of
-                            an Exercise Performed by the user which includes an input
-                            subsystem configured to receive User Data from the User</p>
-
-                        <a href="https://iprsearch.ipindia.gov.in/PublicSearch/" class="read-more">Read more <i class="ti-angle-double-right"></i></a>
-                    </div>
-                </div>
-                <!-- end of blog wrapper -->
-                
-
-            </div>
-        </div>
-    </section>
-
-    <div class="section contact" id="contact">
-        <div id="map" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;" class="map"></div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="contact-info-card">
-                        <h4 class="contact-title">Get in touch</h4>
-                        <div class="row mb-2">
-                            <div class="col-1 pt-1 mr-1">
-                                <i class="ti-map-alt icon-md"></i>
-                            </div>
-                            <div class="col-10">
-                                <h6 class="d-inline">Address :<br> <span class="text-muted">Bengaluru, Karnataka, India</span></h6>
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-1 pt-1 mr-1">
-                                <i class="ti-envelope icon-md"></i>
-                            </div>
-                            <div class="col-10">
-                                <h6 class="d-inline">Email :<br> <span class="text-muted">sangushashanksai@gmail.com</span></h6>
-                            </div>
-                        </div>
-                        <ul class="social-icons pt-4">
-                            <li class="social-item"><a class="social-link text-dark" href="https://www.linkedin.com/in/shashanksangu/"><i class="ti-linkedin" aria-hidden="true"></i></a></li>
-                            <li class="social-item"><a class="social-link text-dark" href="https://www.instagram.com/__shashanksangu__/"><i class="ti-instagram" aria-hidden="true"></i></a></li>
-                            <li class="social-item"><a class="social-link text-dark" href="https://github.com/shashanksangu"><i class="ti-github" aria-hidden="true"></i></a></li>
-                        </ul> 
-                    </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Surrogate Modelling</span><span class="skill-pct">60%</span></div>
+                    <div class="skill-bar"><div class="skill-fill reveal-skill" data-width="60"></div></div>
                 </div>
             </div>
-
         </div>
     </div>
-    <footer class="footer py-3">
-        <!--
-        <div class="container">
-            <p class="small mb-0 text-light">
-                &copy; <script>document.write(new Date().getFullYear())</script> Created With <i class="ti-heart text-danger"></i> By <a href="http://devcrud.com" target="_blank"><span class="text-danger" title="Bootstrap 4 Themes and Dashboards">DevCRUD</span></a> 
-            </p>
+</section>
+
+<!-- ══════════════════════════════════════════
+     STATS
+══════════════════════════════════════════ -->
+<div class="stats-wrap">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-icon"><i class="ti-alarm-clock"></i></div>
+            <span class="stat-num" id="hours-worked">—</span>
+            <div class="stat-label">Hours Worked</div>
         </div>
-        -->
-        <div class="container">
-            <p class="small mb-0 text-light">
-                Potfolio of Shashank Sangu - &copy; <script>document.write(new Date().getFullYear())</script> Created With <i class="ti-heart text-danger"></i> By <a href="http://devcrud.com" target="_blank"><span class="text-danger" title="Bootstrap 4 Themes and Dashboards">DevCRUD</span></a>
-            </p>
+        <div class="stat-item">
+            <div class="stat-icon"><i class="ti-layers-alt"></i></div>
+            <span class="stat-num" id="projects-count">—</span>
+            <div class="stat-label">Projects Finished</div>
         </div>
-    </footer>
+        <div class="stat-item">
+            <div class="stat-icon"><i class="ti-face-smile"></i></div>
+            <span class="stat-num">4K+</span>
+            <div class="stat-label">Happy Customers</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon"><i class="ti-heart-broken"></i></div>
+            <span class="stat-num">5K+</span>
+            <div class="stat-label">Coffee Cups</div>
+        </div>
+    </div>
+</div>
 
-	<!-- core  -->
-    <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
+<!-- ══════════════════════════════════════════
+     PATENTS
+══════════════════════════════════════════ -->
+<section class="section" id="blog">
+    <div class="section-inner">
+        <p class="section-label">04 — Intellectual Property</p>
+        <h2 class="section-title">My <span>Patents</span></h2>
+        <div class="patents-grid">
+            <div class="glass-card patent-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <img src="assets/imgs/P1.jpeg" class="patent-img" alt="Patent 1">
+                <div>
+                    <p class="patent-title">A Digital Assisting Device to Monitor and Train Activities of a User</p>
+                    <p class="patent-appnum">App. No. 202041053954</p>
+                    <p class="patent-desc">System &amp; Method to track Human Activities which includes Activity Input Module configured to receive Plurality of Inputs.</p>
+                    <a href="https://iprsearch.ipindia.gov.in/PublicSearch/" class="read-more">Read more <i class="ti-angle-double-right"></i></a>
+                </div>
+            </div>
+            <div class="glass-card patent-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <img src="assets/imgs/P2.jpeg" class="patent-img" alt="Patent 2">
+                <div>
+                    <p class="patent-title">System and Method for Performance Evaluation of an Exercise Performed by a User</p>
+                    <p class="patent-appnum">App. No. 202041000701</p>
+                    <p class="patent-desc">System and Method for Performance Evaluation including an input subsystem configured to receive User Data from the User.</p>
+                    <a href="https://iprsearch.ipindia.gov.in/PublicSearch/" class="read-more">Read more <i class="ti-angle-double-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <!-- bootstrap 3 affix -->
-    <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
+<!-- ══════════════════════════════════════════
+     CONTACT
+══════════════════════════════════════════ -->
+<section class="section" id="contact">
+    <div class="section-inner">
+        <p class="section-label">05 — Get in Touch</p>
+        <h2 class="section-title">Contact <span>Me</span></h2>
+        <div class="contact-inner">
+            <div class="glass-card tilt-card">
+                <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+                <p class="card-label" style="margin-bottom:32px">Let's Connect</p>
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="ti-map-alt"></i></div>
+                    <div class="contact-detail"><h6>Location</h6><p>Bengaluru, Karnataka, India</p></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="ti-envelope"></i></div>
+                    <div class="contact-detail"><h6>Email</h6><p>sangushashanksai@gmail.com</p></div>
+                </div>
+                <div class="social-row" style="margin-top:32px">
+                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn"><i class="ti-linkedin"></i></a>
+                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn"><i class="ti-instagram"></i></a>
+                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn"><i class="ti-github"></i></a>
+                </div>
+            </div>
+            <canvas id="globe-canvas"></canvas>
+        </div>
+    </div>
+</section>
 
-    <!-- Isotope  -->
-    <script src="assets/vendors/isotope/isotope.pkgd.js"></script>
-    
-    <!-- Google maps -->
-    <!--<script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>-->
-    <script>
-      // Initialize the map and set its view to Bengaluru
-      var map = L.map('map').setView([12.9716, 77.5946], 13);
+<footer>
+    <p>Portfolio of Shashank Sangu &nbsp;·&nbsp; &copy; <span id="yr"></span> &nbsp;·&nbsp; Built with <span style="color:var(--pink)">&#9829;</span></p>
+</footer>
 
-      // Add OpenStreetMap tile layer
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-    </script>
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 
-    <!-- JohnDoe js -->
-    <script src="assets/js/johndoe.js"></script>
-    
-    <script>
-        function printResume() {
-            var printWindow = window.open('assets/docs/Resume.pdf', '_blank');
-            printWindow.addEventListener('load', function() {
-                printWindow.print();
-            }, true);
+<script>
+gsap.registerPlugin(ScrollTrigger);
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ══════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════ */
+(function() {
+    const pctEl = document.getElementById('loaderPct');
+    let p = 0;
+    const iv = setInterval(function() {
+        p = Math.min(p + Math.random() * 9, 99);
+        pctEl.textContent = Math.floor(p) + '%';
+    }, 80);
+    window.addEventListener('load', function() {
+        clearInterval(iv);
+        pctEl.textContent = '100%';
+        setTimeout(function() {
+            document.getElementById('loader').classList.add('gone');
+            setTimeout(heroEntrance, 650);
+        }, 400);
+    });
+})();
+
+/* ══════════════════════════════════════════
+   HERO ENTRANCE
+══════════════════════════════════════════ */
+function heroEntrance() {
+    const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+    tl.to('#heroSub',     { opacity: 1, y: 0, duration: 1 })
+      .to('#heroTitle',   { opacity: 1, y: 0, duration: 1 }, '-=.6')
+      .to('#heroRole',    { opacity: 1, y: 0, duration: .8 }, '-=.5')
+      .to('#heroButtons', { opacity: 1, y: 0, duration: .8 }, '-=.4')
+      .to('#scrollInd',   { opacity: 1, duration: .6 },       '-=.3');
+}
+
+/* ══════════════════════════════════════════
+   SCROLL PROGRESS BAR
+══════════════════════════════════════════ */
+const progressEl = document.getElementById('scroll-progress');
+window.addEventListener('scroll', function() {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    progressEl.style.height = pct + '%';
+}, { passive: true });
+
+/* ══════════════════════════════════════════
+   CUSTOM CURSOR
+══════════════════════════════════════════ */
+const cursorDot  = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', function(e) {
+    mx = e.clientX; my = e.clientY;
+    cursorDot.style.left = mx + 'px';
+    cursorDot.style.top  = my + 'px';
+}, { passive: true });
+
+(function animRing() {
+    rx += (mx - rx) * .1;
+    ry += (my - ry) * .1;
+    cursorRing.style.left = rx + 'px';
+    cursorRing.style.top  = ry + 'px';
+    requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a, button, .glass-card').forEach(function(el) {
+    el.addEventListener('mouseenter', function() { cursorDot.classList.add('hover'); cursorRing.classList.add('hover'); });
+    el.addEventListener('mouseleave', function() { cursorDot.classList.remove('hover'); cursorRing.classList.remove('hover'); });
+});
+
+/* ══════════════════════════════════════════
+   THREE.JS PARTICLE FIELD
+══════════════════════════════════════════ */
+(function initThree() {
+    const canvas   = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 50;
+
+    /* glowing particle texture */
+    const ptc = document.createElement('canvas');
+    ptc.width = ptc.height = 64;
+    const ptx = ptc.getContext('2d');
+    const grd = ptx.createRadialGradient(32,32,0,32,32,32);
+    grd.addColorStop(0,    'rgba(255,255,255,1)');
+    grd.addColorStop(0.25, 'rgba(180,235,255,.9)');
+    grd.addColorStop(1,    'rgba(0,0,0,0)');
+    ptx.fillStyle = grd; ptx.fillRect(0,0,64,64);
+    const ptex = new THREE.CanvasTexture(ptc);
+
+    /* star field */
+    const COUNT = 3500;
+    const pos = new Float32Array(COUNT * 3);
+    const col = new Float32Array(COUNT * 3);
+    for (let i = 0; i < COUNT; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.acos(2 * Math.random() - 1);
+        const r     = 35 + Math.random() * 90;
+        pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+        pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        pos[i*3+2] = r * Math.cos(phi) - 10;
+        const t = Math.random();
+        if (t < .28)      { col[i*3]=0;    col[i*3+1]=.83; col[i*3+2]=1; }
+        else if (t < .48) { col[i*3]=.48;  col[i*3+1]=.18; col[i*3+2]=1; }
+        else              { col[i*3]=.55;  col[i*3+1]=.65; col[i*3+2]=.9; }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+    const mat = new THREE.PointsMaterial({ size: .55, map: ptex, vertexColors: true, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+    const stars = new THREE.Points(geo, mat);
+    scene.add(stars);
+
+    /* large accent particles */
+    const ACC = 80;
+    const ap  = new Float32Array(ACC * 3);
+    const ac  = new Float32Array(ACC * 3);
+    for (let i = 0; i < ACC; i++) {
+        ap[i*3]=(Math.random()-.5)*120; ap[i*3+1]=(Math.random()-.5)*80; ap[i*3+2]=(Math.random()-.5)*60-10;
+        const cyan = Math.random() > .5;
+        ac[i*3]=cyan?0:.48; ac[i*3+1]=cyan?.83:.18; ac[i*3+2]=1;
+    }
+    const ageo = new THREE.BufferGeometry();
+    ageo.setAttribute('position', new THREE.BufferAttribute(ap, 3));
+    ageo.setAttribute('color',    new THREE.BufferAttribute(ac, 3));
+    scene.add(new THREE.Points(ageo, new THREE.PointsMaterial({ size: 1.4, map: ptex, vertexColors: true, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })));
+
+    /* mouse + scroll parallax */
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    document.addEventListener('mousemove', function(e) {
+        tx = (e.clientX / window.innerWidth  - .5) * 5;
+        ty = (e.clientY / window.innerHeight - .5) * 3;
+    }, { passive: true });
+
+    (function loop() {
+        requestAnimationFrame(loop);
+        stars.rotation.y += .0002;
+        stars.rotation.x += .00008;
+        cx += (tx - cx) * .018;
+        cy += (ty - cy) * .018;
+        camera.position.x = cx;
+        camera.position.y = -cy;
+        /* zoom camera based on scroll progress */
+        const scrollProg = window.scrollY / (document.body.scrollHeight - window.innerHeight || 1);
+        camera.position.z = 50 - scrollProg * 22;
+        mat.opacity = Math.max(.25, .85 - scrollProg * .45);
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+    })();
+
+    window.addEventListener('resize', function() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+})();
+
+/* ══════════════════════════════════════════
+   NAV SCROLL + MOBILE TOGGLE
+══════════════════════════════════════════ */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', function() { navbar.classList.toggle('scrolled', window.scrollY > 80); }, { passive: true });
+document.getElementById('navToggle').addEventListener('click', function() { document.getElementById('navLinks').classList.toggle('open'); });
+document.querySelectorAll('.nav-links a').forEach(function(a) { a.addEventListener('click', function() { document.getElementById('navLinks').classList.remove('open'); }); });
+
+/* ══════════════════════════════════════════
+   SECTION TITLE REVEAL (clip-path wipe)
+══════════════════════════════════════════ */
+document.querySelectorAll('.section-title').forEach(function(el) {
+    gsap.fromTo(el,
+        { clipPath: 'inset(0 0 100% 0)', y: 20, opacity: 0 },
+        { clipPath: 'inset(0 0 0% 0)',   y: 0,  opacity: 1,
+          duration: 1.1, ease: 'power4.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', once: true }
         }
-    </script>
-    <script>
-        function calculateHoursWorked(startDate, endDate, hoursPerDay) {
-            let totalHours = 0;
-            let currentDate = new Date(startDate);
+    );
+});
 
-            while (currentDate <= endDate) {
-                // Check if the current day is a weekday (Monday to Friday)
-                if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-                    totalHours += hoursPerDay;
+/* Section labels */
+document.querySelectorAll('.section-label').forEach(function(el) {
+    gsap.fromTo(el,
+        { opacity: 0, x: -20 },
+        { opacity: .6, x: 0, duration: .8, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 90%', once: true }
+        }
+    );
+});
+
+/* ══════════════════════════════════════════
+   ABOUT CARDS — staggered cascade
+══════════════════════════════════════════ */
+gsap.fromTo('.about-grid .glass-card',
+    { opacity: 0, y: 60, scale: .97 },
+    { opacity: 1, y: 0, scale: 1, duration: .9, stagger: .15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.about-grid', start: 'top 82%', once: true }
+    }
+);
+
+/* ══════════════════════════════════════════
+   TIMELINE ITEMS — alternating slide-in
+══════════════════════════════════════════ */
+document.querySelectorAll('.tline-item').forEach(function(el, i) {
+    gsap.fromTo(el,
+        { opacity: 0, x: i % 2 === 0 ? -40 : 40 },
+        { opacity: 1, x: 0, duration: .8, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+        }
+    );
+});
+
+/* ══════════════════════════════════════════
+   SKILL BARS
+══════════════════════════════════════════ */
+const skillObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+        if (e.isIntersecting) {
+            e.target.style.width = e.target.dataset.width + '%';
+            setTimeout(function() { e.target.classList.add('lit'); }, 1600);
+            skillObs.unobserve(e.target);
+        }
+    });
+}, { threshold: .1 });
+document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.observe(el); });
+
+/* ══════════════════════════════════════════
+   HORIZONTAL EXPERIENCE — pinned scroll
+══════════════════════════════════════════ */
+(function() {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) return; /* stacks vertically on mobile */
+
+    const track  = document.getElementById('exp-track');
+    const dots   = document.querySelectorAll('.exp-dot');
+    const dotsEl = document.getElementById('expDots');
+    dotsEl.style.display = 'flex';
+
+    /* Pin + drive the horizontal tween — save reference for containerAnimation */
+    const horizTween = gsap.to(track, {
+        x: function() { return -(track.scrollWidth - window.innerWidth); },
+        ease: 'none',
+        scrollTrigger: {
+            trigger: '#experience',
+            start: 'top top',
+            end: function() { return '+=' + (track.scrollWidth - window.innerWidth); },
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: function(self) {
+                const idx = Math.round(self.progress * (dots.length - 1));
+                dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+            }
+        }
+    });
+
+    /* Animate each slide's text using containerAnimation so ScrollTrigger
+       measures horizontal position (not vertical scroll) as the trigger point */
+    const slides = gsap.utils.toArray('#exp-track .exp-slide');
+    slides.forEach(function(slide, i) {
+        if (i === 0) return; /* intro slide is always visible */
+        const elems = slide.querySelectorAll(
+            '.exp-slide-index, .exp-slide-date, .exp-slide-title, .exp-slide-co, .exp-slide-desc'
+        );
+        gsap.fromTo(elems,
+            { opacity: 0, y: 35 },
+            {
+                opacity: 1, y: 0,
+                duration: .6, stagger: .1, ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: slide,
+                    containerAnimation: horizTween,   /* KEY: uses horiz scroll as reference */
+                    start: 'left 75%',
+                    toggleActions: 'play none none reverse'
                 }
-                // Move to the next day
-                currentDate.setDate(currentDate.getDate() + 1);
             }
+        );
+    });
+})();
 
-            return totalHours;
+/* ══════════════════════════════════════════
+   PATENT CARDS — stagger
+══════════════════════════════════════════ */
+gsap.fromTo('.patents-grid .glass-card',
+    { opacity: 0, y: 50 },
+    { opacity: 1, y: 0, duration: .9, stagger: .2, ease: 'power3.out',
+      scrollTrigger: { trigger: '.patents-grid', start: 'top 82%', once: true }
+    }
+);
+
+/* ══════════════════════════════════════════
+   3D TILT ON GLASS CARDS
+══════════════════════════════════════════ */
+document.querySelectorAll('.tilt-card').forEach(function(card) {
+    card.addEventListener('mousemove', function(e) {
+        const r   = card.getBoundingClientRect();
+        const x   = e.clientX - r.left;
+        const y   = e.clientY - r.top;
+        const cx  = r.width  / 2;
+        const cy  = r.height / 2;
+        const rotX = ((y - cy) / cy) * -10;
+        const rotY = ((x - cx) / cx) *  10;
+        gsap.to(card, {
+            rotationX: rotX, rotationY: rotY,
+            transformPerspective: 900,
+            translateZ: 10,
+            duration: .25, ease: 'power2.out',
+            overwrite: 'auto'
+        });
+        /* dynamic shadow */
+        card.style.boxShadow =
+            (-rotY * 2) + 'px ' + (rotX * 2) + 'px 50px rgba(0,212,255,.12), ' +
+            '0 20px 60px rgba(0,212,255,.07)';
+    });
+    card.addEventListener('mouseleave', function() {
+        gsap.to(card, {
+            rotationX: 0, rotationY: 0, translateZ: 0,
+            duration: .7, ease: 'elastic.out(1,.4)', overwrite: 'auto'
+        });
+        card.style.boxShadow = '';
+    });
+});
+
+/* ══════════════════════════════════════════
+   MAGNETIC BUTTONS
+══════════════════════════════════════════ */
+document.querySelectorAll('.mag-btn').forEach(function(btn) {
+    btn.addEventListener('mousemove', function(e) {
+        const r  = btn.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width  / 2);
+        const dy = e.clientY - (r.top  + r.height / 2);
+        gsap.to(btn, { x: dx * .3, y: dy * .3, duration: .3, ease: 'power2.out' });
+    });
+    btn.addEventListener('mouseleave', function() {
+        gsap.to(btn, { x: 0, y: 0, duration: .6, ease: 'elastic.out(1,.4)' });
+    });
+});
+
+/* ══════════════════════════════════════════
+   HERO PARALLAX ON SCROLL
+══════════════════════════════════════════ */
+gsap.to('.hero-content', {
+    y: -100,
+    ease: 'none',
+    scrollTrigger: {
+        trigger: '#home',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true
+    }
+});
+
+/* ══════════════════════════════════════════
+   STATS COUNTERS
+══════════════════════════════════════════ */
+(function() {
+    let h = 0, d = new Date('2018-12-01'), now = new Date();
+    while (d <= now) { if (d.getDay()!==0&&d.getDay()!==6) h+=8; d.setDate(d.getDate()+1); }
+    window._hrs = h;
+})();
+
+function countUp(id, target) {
+    const el = document.getElementById(id);
+    if (!el || !target) return;
+    const dur = 2200, t0 = performance.now();
+    (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.round((1 - Math.pow(1-p, 4)) * target).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+}
+
+const statsObs = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+        countUp('hours-worked', window._hrs);
+        fetch('https://api.github.com/users/shashanksangu/repos?per_page=100')
+            .then(function(r) { return r.json(); })
+            .then(function(repos) {
+                return fetch('https://api.github.com/users/shashank-fujitsu/repos?per_page=100')
+                    .then(function(r2) { return r2.json(); })
+                    .then(function(r2repos) { return repos.length + (Array.isArray(r2repos) ? r2repos.length : 0); });
+            })
+            .then(function(total) { countUp('projects-count', total); })
+            .catch(function() { document.getElementById('projects-count').textContent = 'N/A'; });
+        statsObs.disconnect();
+    }
+}, { threshold: .4 });
+statsObs.observe(document.querySelector('.stats-grid'));
+
+/* ══════════════════════════════════════════
+   ROTATING 3D GLOBE — real geographic data
+   Loads country + land outlines from
+   world-atlas (jsDelivr, CORS enabled).
+   Falls back to wireframe on network error.
+══════════════════════════════════════════ */
+(function() {
+    const canvas = document.getElementById('globe-canvas');
+
+    function initGlobe() {
+        const W   = canvas.offsetWidth  || 500;
+        const H   = canvas.offsetHeight || 380;
+        const DPR = Math.min(window.devicePixelRatio, 2);
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(W, H);
+        renderer.setPixelRatio(DPR);
+
+        const scene  = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+        camera.position.z = 2.7;
+
+        const R = 1;
+
+        /* lat/lon → XYZ on sphere */
+        function ll(lat, lon, r) {
+            const phi   = (90 - lat) * Math.PI / 180;
+            const theta = (lon + 180) * Math.PI / 180;
+            return new THREE.Vector3(
+                -r * Math.sin(phi) * Math.cos(theta),
+                 r * Math.cos(phi),
+                 r * Math.sin(phi) * Math.sin(theta)
+            );
         }
 
-        // Define the start and end dates
-        const startDate = new Date('2018-12-01');
-        const endDate = new Date();
-        const hoursPerDay = 8;
+        /* Globe group — pre-rotate so Bengaluru faces camera */
+        const globe = new THREE.Group();
+        globe.rotation.y = Math.PI - (77.5946 + 180) * Math.PI / 180;
+        scene.add(globe);
 
-        // Calculate hours worked
-        const totalHoursWorked = calculateHoursWorked(startDate, endDate, hoursPerDay);
+        /* ── Dark ocean sphere ── */
+        globe.add(new THREE.Mesh(
+            new THREE.SphereGeometry(R, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x010a18, transparent: true, opacity: 0.98 })
+        ));
 
-        // Update the HTML with the calculated value
-        document.getElementById('hours-worked').textContent = totalHoursWorked;
-    </script>
-    
-    <script>
-        async function fetchRepositoryCount(username) {
-            const response = await fetch(`https://api.github.com/users/${username}/repos`);
-            if (response.ok) {
-                const repos = await response.json();
-                return repos.length;
-            } else {
-                throw new Error(`Failed to fetch repositories for ${username}`);
-            }
+        /* ── Subtle lat/lon grid (background reference) ── */
+        globe.add(new THREE.LineSegments(
+            new THREE.WireframeGeometry(new THREE.SphereGeometry(R + 0.001, 24, 16)),
+            new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.07 })
+        ));
+
+        /* ── Atmosphere glow ── */
+        scene.add(new THREE.Mesh(
+            new THREE.SphereGeometry(R * 1.18, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.07, side: THREE.BackSide })
+        ));
+
+        /* ── Shared glowing dot texture ── */
+        const dc = document.createElement('canvas'); dc.width = dc.height = 64;
+        const dctx = dc.getContext('2d');
+        const dg = dctx.createRadialGradient(32,32,0, 32,32,32);
+        dg.addColorStop(0,   'rgba(255,255,255,1)');
+        dg.addColorStop(0.25,'rgba(0,212,255,1)');
+        dg.addColorStop(1,   'rgba(0,212,255,0)');
+        dctx.fillStyle = dg; dctx.fillRect(0,0,64,64);
+        const dotTex = new THREE.CanvasTexture(dc);
+
+        /* ── Bengaluru marker ── */
+        const BLR = ll(12.9716, 77.5946, R);
+
+        /* glowing surface dot */
+        const surfGeo = new THREE.BufferGeometry();
+        surfGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([BLR.x, BLR.y, BLR.z]), 3));
+        globe.add(new THREE.Points(surfGeo, new THREE.PointsMaterial({
+            size: 0.20, map: dotTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        })));
+
+        /* spike line */
+        const tip = BLR.clone().multiplyScalar(1.24);
+        globe.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([BLR.clone(), tip.clone()]),
+            new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.75 })
+        ));
+
+        /* tip dot */
+        const tipGeo = new THREE.BufferGeometry();
+        tipGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([tip.x, tip.y, tip.z]), 3));
+        globe.add(new THREE.Points(tipGeo, new THREE.PointsMaterial({
+            size: 0.11, map: dotTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        })));
+
+        /* 3 sonar pulse rings */
+        const pulseRings = [];
+        for (let i = 0; i < 3; i++) {
+            const rMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0, side: THREE.DoubleSide });
+            const ring  = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.005, 8, 48), rMat);
+            ring.position.copy(BLR); ring.lookAt(0,0,0); ring.rotateX(Math.PI / 2);
+            globe.add(ring);
+            pulseRings.push({ mesh: ring, mat: rMat, phase: i / 3 });
         }
 
-        async function countTotalProjects(usernames) {
-            try {
-                const fetchPromises = usernames.map(username => fetchRepositoryCount(username));
-                const counts = await Promise.all(fetchPromises);
-                const totalProjects = counts.reduce((sum, count) => sum + count, 0);
-
-                document.getElementById('projects-count').textContent = totalProjects;
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                document.getElementById('projects-count').textContent = 'Error';
-            }
+        /* ── Draw a TopoJSON mesh as globe lines ── */
+        function drawMesh(mesh, color, opacity) {
+            const mat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity });
+            /* topojson.mesh returns a GeoJSON MultiLineString */
+            mesh.coordinates.forEach(function(line) {
+                const pts = [];
+                for (let i = 0; i < line.length; i++) {
+                    pts.push(ll(line[i][1], line[i][0], R + 0.003));
+                }
+                if (pts.length < 2) return;
+                globe.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+            });
         }
 
-        // List of GitHub usernames
-        const usernames = ['shashanksangu', 'shashank-fujitsu']; // Replace with actual usernames
+        /* ── Fetch world-atlas and draw real geography ── */
+        fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+            .then(function(r) { return r.json(); })
+            .then(function(world) {
+                /* Coastlines — bright cyan */
+                drawMesh(
+                    topojson.mesh(world, world.objects.land),
+                    0x00d4ff, 0.85
+                );
+                /* Country interior borders — dimmer */
+                drawMesh(
+                    topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }),
+                    0x00d4ff, 0.28
+                );
+            })
+            .catch(function() {
+                /* Network unavailable (local file:// preview) — boost wireframe */
+                globe.children.forEach(function(c) {
+                    if (c.isLineSegments && c.material) c.material.opacity = 0.35;
+                });
+            });
 
-        countTotalProjects(usernames);
-    </script>
+        /* ── Mouse drag to spin ── */
+        let drag = false, px = 0, py = 0, vx = 0;
+        canvas.style.cursor = 'grab';
+        canvas.addEventListener('mousedown', function(e) { drag=true; px=e.clientX; py=e.clientY; vx=0; canvas.style.cursor='grabbing'; });
+        window.addEventListener('mouseup',   function()  { drag=false; canvas.style.cursor='grab'; });
+        window.addEventListener('mousemove', function(e) {
+            if (!drag) return;
+            vx = (e.clientX - px) * 0.006;
+            const vy = (e.clientY - py) * 0.004;
+            globe.rotation.y += vx;
+            globe.rotation.x = Math.max(-0.9, Math.min(0.9, globe.rotation.x + vy));
+            px = e.clientX; py = e.clientY;
+        });
 
+        /* ── Animation loop ── */
+        (function loop() {
+            requestAnimationFrame(loop);
+            if (!drag) { globe.rotation.y += 0.0016; vx *= 0.92; }
+            const t0 = Date.now() * 0.001;
+            pulseRings.forEach(function(p) {
+                const t = (t0 * 0.55 + p.phase) % 1;
+                p.mesh.scale.setScalar(1 + t * 4);
+                p.mat.opacity = (1 - t) * 0.72;
+            });
+            renderer.render(scene, camera);
+        })();
+
+        /* ── Resize ── */
+        window.addEventListener('resize', function() {
+            const nW = canvas.offsetWidth, nH = canvas.offsetHeight;
+            camera.aspect = nW / nH;
+            camera.updateProjectionMatrix();
+            renderer.setSize(nW, nH);
+        });
+    }
+
+    /* Lazy-init when canvas enters the viewport */
+    const obs = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) { initGlobe(); obs.disconnect(); }
+    }, { threshold: 0.1 });
+    obs.observe(canvas);
+})();
+</script>
 </body>
 </html>

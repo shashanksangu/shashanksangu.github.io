@@ -210,7 +210,7 @@
         transition: border-color .4s, box-shadow .4s;
         transform-style: preserve-3d;
     }
-    .glass-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(0,212,255,.04) 0%,transparent 60%); opacity: 0; transition: opacity .4s; }
+    .glass-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(0,212,255,.04) 0%,transparent 60%); opacity: 0; transition: opacity .4s; pointer-events: none; }
     .glass-card:hover { border-color: rgba(0,212,255,.3); }
     .glass-card:hover::before { opacity: 1; }
     /* corner brackets */
@@ -351,16 +351,21 @@
     /* ─────────────────────────────────────────────────────
        CONTACT
     ───────────────────────────────────────────────────── */
-    #contact { background: var(--dark2); }
-    .contact-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+    #contact { background: var(--dark2); position: relative; overflow: hidden; padding-top: 100px; padding-bottom: 100px; }
+    #globe-canvas {
+        position: absolute; right: 0; top: 0; width: 65%; height: 100%;
+        display: block;
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 28%);
+        mask-image: linear-gradient(to right, transparent 0%, black 28%);
+    }
+    .contact-inner { position: relative; z-index: 2; display: flex; align-items: flex-start; pointer-events: none; }
+    .contact-left { max-width: 420px; pointer-events: auto; }
+    .contact-left .section-label { margin-bottom: 16px; }
+    .contact-left .section-title { margin-bottom: 40px; }
     .contact-item { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
     .contact-icon { width: 42px; height: 42px; flex-shrink: 0; border: 1px solid rgba(0,212,255,.18); display: flex; align-items: center; justify-content: center; color: var(--cyan); }
     .contact-detail h6 { font-size: .65rem; letter-spacing: 2px; color: rgba(255,255,255,.28); text-transform: uppercase; margin-bottom: 4px; }
     .contact-detail p  { font-size: .88rem; color: rgba(255,255,255,.6); }
-    #globe-canvas {
-        width: 100%; height: 380px; display: block;
-        border: 1px solid rgba(0,212,255,.12); border-radius: 2px;
-    }
 
     /* ─────────────────────────────────────────────────────
        FOOTER
@@ -461,9 +466,9 @@
         </div>
     </div>
     <div class="hero-social">
-        <a href="https://www.linkedin.com/in/shashanksangu/" class="ti-linkedin" title="LinkedIn"></a>
-        <a href="https://www.instagram.com/__shashanksangu__/" class="ti-instagram" title="Instagram"></a>
-        <a href="https://github.com/shashanksangu" class="ti-github" title="GitHub"></a>
+        <a href="https://www.linkedin.com/in/shashanksangu/" class="ti-linkedin" title="LinkedIn" target="_blank" rel="noopener noreferrer"></a>
+        <a href="https://www.instagram.com/__shashanksangu__/" class="ti-instagram" title="Instagram" target="_blank" rel="noopener noreferrer"></a>
+        <a href="https://github.com/shashanksangu" class="ti-github" title="GitHub" target="_blank" rel="noopener noreferrer"></a>
     </div>
     <div class="hero-content">
         <p class="hero-subtitle" id="heroSub">Senior Software Developer &nbsp;·&nbsp; AI Researcher</p>
@@ -505,9 +510,9 @@
                     <li><span class="info-key">Location</span><span class="info-val">Bengaluru, Karnataka, India</span></li>
                 </ul>
                 <div class="social-row">
-                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn"><i class="ti-linkedin"></i></a>
-                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn"><i class="ti-instagram"></i></a>
-                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn"><i class="ti-github"></i></a>
+                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-linkedin"></i></a>
+                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-instagram"></i></a>
+                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-github"></i></a>
                 </div>
             </div>
             <div class="glass-card tilt-card">
@@ -735,10 +740,11 @@
      CONTACT
 ══════════════════════════════════════════ -->
 <section class="section" id="contact">
-    <div class="section-inner">
-        <p class="section-label">05 — Get in Touch</p>
-        <h2 class="section-title">Contact <span>Me</span></h2>
-        <div class="contact-inner">
+    <canvas id="globe-canvas"></canvas>
+    <div class="section-inner contact-inner">
+        <div class="contact-left">
+            <p class="section-label">05 — Get in Touch</p>
+            <h2 class="section-title">Contact <span>Me</span></h2>
             <div class="glass-card tilt-card">
                 <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
                 <p class="card-label" style="margin-bottom:32px">Let's Connect</p>
@@ -751,12 +757,11 @@
                     <div class="contact-detail"><h6>Email</h6><p>sangushashanksai@gmail.com</p></div>
                 </div>
                 <div class="social-row" style="margin-top:32px">
-                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn"><i class="ti-linkedin"></i></a>
-                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn"><i class="ti-instagram"></i></a>
-                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn"><i class="ti-github"></i></a>
+                    <a href="https://www.linkedin.com/in/shashanksangu/" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-linkedin"></i></a>
+                    <a href="https://www.instagram.com/__shashanksangu__/" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-instagram"></i></a>
+                    <a href="https://github.com/shashanksangu" class="social-btn mag-btn" target="_blank" rel="noopener noreferrer"><i class="ti-github"></i></a>
                 </div>
             </div>
-            <canvas id="globe-canvas"></canvas>
         </div>
     </div>
 </section>
@@ -1003,58 +1008,98 @@ const skillObs = new IntersectionObserver(function(entries) {
 document.querySelectorAll('.reveal-skill').forEach(function(el) { skillObs.observe(el); });
 
 /* ══════════════════════════════════════════
-   HORIZONTAL EXPERIENCE — pinned scroll
+   HORIZONTAL EXPERIENCE — one scroll = one slide
 ══════════════════════════════════════════ */
 (function() {
     const isMobile = window.innerWidth <= 768;
-    if (isMobile) return; /* stacks vertically on mobile */
+    if (isMobile) return;
 
-    const track  = document.getElementById('exp-track');
-    const dots   = document.querySelectorAll('.exp-dot');
-    const dotsEl = document.getElementById('expDots');
+    const section = document.getElementById('experience');
+    const track   = document.getElementById('exp-track');
+    const dots    = document.querySelectorAll('.exp-dot');
+    const dotsEl  = document.getElementById('expDots');
+    const slides  = gsap.utils.toArray('#exp-track .exp-slide');
+    const total   = slides.length;
+
     dotsEl.style.display = 'flex';
 
-    /* Pin + drive the horizontal tween — save reference for containerAnimation */
-    const horizTween = gsap.to(track, {
-        x: function() { return -(track.scrollWidth - window.innerWidth); },
-        ease: 'none',
-        scrollTrigger: {
-            trigger: '#experience',
-            start: 'top top',
-            end: function() { return '+=' + (track.scrollWidth - window.innerWidth); },
-            pin: true,
-            scrub: 1.2,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onUpdate: function(self) {
-                const idx = Math.round(self.progress * (dots.length - 1));
-                dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+    let current = 0;
+    let locked  = false;
+    let inside  = false;
+
+    /* Pin — end is one full viewport height so the section stays pinned while
+       we intercept wheel events. Scroll only escapes when we stop preventing it
+       (first/last slide boundary), at which point 1 vh of scroll exits the pin. */
+    ScrollTrigger.create({
+        trigger: section,
+        start: 'top top',
+        end: '+=' + window.innerHeight,
+        pin: true,
+        anticipatePin: 1,
+        onEnter:     function() { inside = true;  snap(0, false); },
+        onLeave:     function() { inside = false; },
+        onEnterBack: function() { inside = true;  snap(total - 1, false); },
+        onLeaveBack: function() { inside = false; }
+    });
+
+    function snap(idx, animate) {
+        current = idx;
+        locked  = true;
+
+        const slideW = section.offsetWidth;
+
+        if (!animate) {
+            gsap.set(track, { x: -(current * slideW) });
+            locked = false;
+        } else {
+            gsap.to(track, {
+                x: -(current * slideW),
+                duration: 0.7,
+                ease: 'power2.inOut',
+                onComplete: function() { setTimeout(function() { locked = false; }, 250); }
+            });
+
+            if (current > 0) {
+                const elems = slides[current].querySelectorAll(
+                    '.exp-slide-index, .exp-slide-date, .exp-slide-title, .exp-slide-co, .exp-slide-desc'
+                );
+                gsap.fromTo(elems,
+                    { opacity: 0, y: 35 },
+                    { opacity: 1, y: 0, duration: 0.55, stagger: 0.09, ease: 'power3.out', delay: 0.15 }
+                );
             }
+        }
+
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    }
+
+    /* One wheel tick → one slide.
+       At the first/last boundary we do NOT preventDefault so the browser
+       scrolls the page, which moves the scroll position past the pin end
+       and triggers onLeave naturally. */
+    window.addEventListener('wheel', function(e) {
+        if (!inside || locked) return;
+
+        const dir  = e.deltaY > 0 ? 1 : -1;
+        const next = current + dir;
+
+        if (next >= 0 && next < total) {
+            e.preventDefault();
+            snap(next, true);
+        }
+    }, { passive: false });
+
+    /* Arrow-key support */
+    window.addEventListener('keydown', function(e) {
+        if (!inside || locked) return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            if (current < total - 1) { e.preventDefault(); snap(current + 1, true); }
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            if (current > 0) { e.preventDefault(); snap(current - 1, true); }
         }
     });
 
-    /* Animate each slide's text using containerAnimation so ScrollTrigger
-       measures horizontal position (not vertical scroll) as the trigger point */
-    const slides = gsap.utils.toArray('#exp-track .exp-slide');
-    slides.forEach(function(slide, i) {
-        if (i === 0) return; /* intro slide is always visible */
-        const elems = slide.querySelectorAll(
-            '.exp-slide-index, .exp-slide-date, .exp-slide-title, .exp-slide-co, .exp-slide-desc'
-        );
-        gsap.fromTo(elems,
-            { opacity: 0, y: 35 },
-            {
-                opacity: 1, y: 0,
-                duration: .6, stagger: .1, ease: 'power3.out',
-                scrollTrigger: {
-                    trigger: slide,
-                    containerAnimation: horizTween,   /* KEY: uses horiz scroll as reference */
-                    start: 'left 75%',
-                    toggleActions: 'play none none reverse'
-                }
-            }
-        );
-    });
+    snap(0, false);
 })();
 
 /* ══════════════════════════════════════════
@@ -1176,12 +1221,13 @@ statsObs.observe(document.querySelector('.stats-grid'));
     const canvas = document.getElementById('globe-canvas');
 
     function initGlobe() {
-        const W   = canvas.offsetWidth  || 500;
-        const H   = canvas.offsetHeight || 380;
+        const section = canvas.closest('section') || canvas.parentElement;
+        const W   = canvas.offsetWidth  || Math.round(window.innerWidth * 0.65);
+        const H   = canvas.offsetHeight || section.clientHeight || 600;
         const DPR = Math.min(window.devicePixelRatio, 2);
 
         const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-        renderer.setSize(W, H);
+        renderer.setSize(W, H, false);   /* false = don't override CSS width/height */
         renderer.setPixelRatio(DPR);
 
         const scene  = new THREE.Scene();
@@ -1333,10 +1379,12 @@ statsObs.observe(document.querySelector('.stats-grid'));
 
         /* ── Resize ── */
         window.addEventListener('resize', function() {
-            const nW = canvas.offsetWidth, nH = canvas.offsetHeight;
+            const nW = canvas.offsetWidth  || Math.round(window.innerWidth * 0.65);
+            const nH = canvas.offsetHeight || section.clientHeight;
+            if (!nW || !nH) return;
             camera.aspect = nW / nH;
             camera.updateProjectionMatrix();
-            renderer.setSize(nW, nH);
+            renderer.setSize(nW, nH, false);
         });
     }
 

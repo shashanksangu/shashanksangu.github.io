@@ -1319,12 +1319,7 @@ const statsObs = new IntersectionObserver(function(entries) {
         countUp('hours-worked', window._hrs);
         fetch('https://api.github.com/users/shashanksangu/repos?per_page=100')
             .then(function(r) { return r.json(); })
-            .then(function(repos) {
-                return fetch('https://api.github.com/users/shashank-fujitsu/repos?per_page=100')
-                    .then(function(r2) { return r2.json(); })
-                    .then(function(r2repos) { return repos.length + (Array.isArray(r2repos) ? r2repos.length : 0); });
-            })
-            .then(function(total) { countUp('projects-count', total); })
+            .then(function(repos) { countUp('projects-count', Array.isArray(repos) ? repos.length : 0); })
             .catch(function() { document.getElementById('projects-count').textContent = 'N/A'; });
         statsObs.disconnect();
     }

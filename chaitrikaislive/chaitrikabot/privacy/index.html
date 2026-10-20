@@ -4,11 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ChaitrikaBot Privacy Policy</title>
-<meta name="description" content="How ChaitrikaBot collects, uses, stores and deletes data, including data from YouTube API Services.">
+<meta name="description" content="How ChaitrikaBot accesses, collects, stores, uses, shares and deletes data, including API Data from YouTube API Services.">
 <link rel="icon" type="image/png" href="/chaitrikaislive/chaitrikabot/chaitrikabot_logo_120.png">
 <link rel="apple-touch-icon" href="/chaitrikaislive/chaitrikabot/chaitrikabot_logo_120.png">
 <meta property="og:image" content="https://www.shashanksangu.com/chaitrikaislive/chaitrikabot/chaitrikabot_logo_800.png">
 <link rel="stylesheet" href="/chaitrikaislive/chaitrikabot/style.css">
+<style>
+  .tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px;line-height:1.5}
+  th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td code,p code,li code{font-size:13px}
+  main a{overflow-wrap:anywhere}
+</style>
 </head>
 <body>
 <header>
@@ -17,58 +26,111 @@
 </header>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">Last updated: 9 October 2026 (v2)</p>
+  <p class="sub">Last updated: 20 October 2026 (v3)</p>
 
-  <p>This policy explains how ChaitrikaBot ("the bot", "we") handles information. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>.</p>
+  <p>This policy explains what information ChaitrikaBot ("the bot", "we", "our") accesses, collects, stores, uses, shares and deletes, including <strong>API Data</strong> we receive from YouTube API Services that relates to you. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>. It has two parts: the chat bot, which runs on the streamer's computer, and our stream overlay, which shows the channel's subscriber count. Both use one Google Cloud project.</p>
 
   <h2>YouTube API Services</h2>
   <div class="card">
-    <p>ChaitrikaBot uses <strong>YouTube API Services</strong>. By chatting in our live streams where the bot is active, you are also subject to the <a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a>. Google's handling of your data is described in the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</p>
+    <p>ChaitrikaBot uses <strong>YouTube API Services</strong>. By chatting in our live streams where the bot is active, you agree to be bound by the <a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a>. Google's handling of your data is described in the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</p>
   </div>
 
-  <h2>What information we access</h2>
-  <p><strong>From viewers in our live chat</strong> (public information shown in the chat):</p>
+  <h2>Who this policy covers</h2>
   <ul>
-    <li>Your YouTube display name and channel ID</li>
-    <li>The text of your chat message and when it was sent</li>
-    <li>Whether the message is a Super Chat, or from a moderator or the channel owner</li>
+    <li><strong>Viewers</strong> who post in the live chat of a Chaitrika is Live stream while the bot is running. Viewers never sign in to ChaitrikaBot, and we never access a viewer's Google account.</li>
+    <li><strong>The bot's own account</strong>: the @ChaitrikaBot YouTube channel, which we own. It is the only account that signs in to the bot.</li>
   </ul>
-  <p><strong>From the bot's own Google account</strong> (the @ChaitrikaBot channel that signs in): an access token that lets the bot read our live chat and post messages. The permission requested is the YouTube scope <code>youtube.force-ssl</code>. We do not access any viewer's Google account, and viewers never sign in to anything.</p>
-  <p><strong>From our own channel:</strong> public channel and stream details such as the stream title, our current live stream and subscriber count. To thank new subscribers on stream, we also read the list of our <em>recent subscribers</em> &mdash; this only includes people who chose to make their subscriptions public, and we only use their display name and channel ID. Reading this list requires the Chaitrika is Live channel to sign in with the read-only YouTube permission <code>youtube.readonly</code>.</p>
-  <p>We do not collect email addresses, phone numbers, location, payment details or private messages, and the bot does not use cookies or trackers.</p>
 
-  <h2>How we use it</h2>
+  <h2>API Data we access, collect, store and use</h2>
+  <p>The table lists every kind of YouTube API Data the bot receives, where it comes from, why we use it, and how long we keep it.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Data</th><th>Source (YouTube API)</th><th>Why we use it</th><th>Where it is kept and for how long</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Viewers' live chat messages</strong>: display name, channel ID, message text and time sent</td>
+        <td><code>liveChatMessages.list</code> on our own live stream (OAuth scope <code>youtube.force-ssl</code>, granted by the @ChaitrikaBot account)</td>
+        <td>To decide which messages need a reply, write the reply, and keep the last ~30 messages as context so replies make sense</td>
+        <td>In memory only while the bot runs during that stream. A copy is written to a daily troubleshooting log on the streamer's computer and is <strong>deleted automatically after 30 days</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Message type flags</strong>: Super Chat, moderator, channel owner</td>
+        <td><code>liveChatMessages.list</code> (same as above)</td>
+        <td>To skip our own and moderator messages and to thank Super Chats</td>
+        <td>In memory only during the stream. Not stored.</td>
+      </tr>
+      <tr>
+        <td><strong>Questions for the streamer</strong>: display name, question text and time</td>
+        <td><code>liveChatMessages.list</code> (same as above)</td>
+        <td>Viewer questions the bot can't answer are saved so the streamer can answer them in a later stream</td>
+        <td>A text file on the streamer's computer. <strong>Deleted automatically after 30 days</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>The bot's replies</strong></td>
+        <td><code>liveChatMessages.insert</code>, posted as @ChaitrikaBot</td>
+        <td>To answer viewers in our live chat</td>
+        <td>Public in our YouTube live chat, as with any chat message. A copy is in the daily log and is deleted after 30 days.</td>
+      </tr>
+      <tr>
+        <td><strong>Our stream details</strong>: live chat ID and stream title</td>
+        <td><code>videos.list</code> for our own live stream</td>
+        <td>To find the chat of the stream the bot should join</td>
+        <td>In memory only during the stream. Not stored.</td>
+      </tr>
+      <tr>
+        <td><strong>The bot account's channel ID and name</strong></td>
+        <td><code>channels.list</code> (<code>mine=true</code>)</td>
+        <td>To check that the bot is signed in as @ChaitrikaBot before it posts</td>
+        <td>In memory only. Not stored.</td>
+      </tr>
+      <tr>
+        <td><strong>Our channel's subscriber count</strong></td>
+        <td><code>channels.list</code> (statistics) for our own channel, using an API key</td>
+        <td>To show the count and our subscriber goal on the stream overlay</td>
+        <td>Refreshed every 5 minutes. Only the latest number is kept, and each refresh overwrites it. No history is kept, and nothing is shown that is more than 30 days old.</td>
+      </tr>
+      <tr>
+        <td><strong>OAuth access and refresh token</strong> for @ChaitrikaBot</td>
+        <td>Google sign-in (OAuth 2.0), scope <code>youtube.force-ssl</code></td>
+        <td>To let the bot read our live chat and post replies</td>
+        <td>A file on the streamer's computer. Deleted when access is revoked or the bot is retired.</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p>We do not access or collect email addresses, phone numbers, location, payment details, private messages, viewing history, or any data from a viewer's Google account. The bot does not use cookies, trackers or analytics.</p>
+
+  <h2>Other information (not from YouTube API Services)</h2>
+  <p>The overlay shows a short thank-you with the display name of a new <em>public</em> subscriber. Those names come from our StreamElements account's own connection to YouTube, not from ChaitrikaBot's YouTube API access. They are kept only so the same person isn't thanked twice and the latest name can be shown, and they are <strong>deleted within 30 days</strong>. A daily count of the bot's own API quota use is also stored. It contains no information about viewers.</p>
+
+  <h2>How we use information</h2>
   <ul>
-    <li>To decide which chat messages need a reply and to write a short reply.</li>
-    <li>To keep a short context of the conversation so replies make sense.</li>
-    <li>To show our subscriber count and goal on the stream overlay, and briefly show a thank-you with the display name of a new public subscriber.</li>
-    <li>To troubleshoot the bot and stay within API limits.</li>
+    <li>Only to run ChaitrikaBot in our own live chat, as described in the table above.</li>
+    <li>We do not sell information or use it for advertising, and we do not build profiles of viewers or combine their information with other data.</li>
+    <li>We do not use API Data for any purpose other than the ones listed in this policy.</li>
   </ul>
-  <p>We do not sell your information, use it for advertising, build profiles of viewers, or combine it with other data.</p>
 
   <h2>Who we share it with</h2>
-  <p>To write a reply, the text of recent chat messages and display names is sent to <strong>Google's Gemini API</strong>, which generates the reply. Google processes this under its own terms and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>; on the free tier, Google may use this content to improve its products. We share nothing with anyone else, except if required by law.</p>
+  <p>To write a reply, the text of recent chat messages and the display names of the viewers who wrote them are sent to <strong>Google's Gemini API</strong>, which generates the reply. Google processes this under its own terms and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>. On the free tier, Google may use this content to improve its products. We do not share information with anyone else, unless the law requires it.</p>
 
-  <h2>Storage and deletion</h2>
+  <h2>Storage, security and deletion</h2>
   <ul>
-    <li>Data is stored only on the streamer's own computer, not on any server.</li>
-    <li>Chat logs (display name, message text, time) are kept for troubleshooting and <strong>deleted within 30 days</strong>.</li>
-    <li>The bot's sign-in token is stored on the same computer and is deleted if the bot is retired or access is revoked.</li>
-    <li>Subscriber counts are refreshed regularly and not kept as history. Names of new subscribers are kept only to avoid thanking the same person twice, and are deleted within 30 days.</li>
+    <li>Everything we store is kept only on the streamer's own password-protected computer, not on any server. The StreamElements overlay data is kept in our StreamElements account.</li>
+    <li>Chat logs and saved questions are deleted automatically after 30 days. The bot runs this cleanup every time it starts and again at midnight.</li>
+    <li>We do not store or display any YouTube API Data for more than 30 days. Anything shown on the stream overlay is refreshed at least every 5 minutes.</li>
+    <li>When ChaitrikaBot is retired, or its access is revoked, we delete the stored token, logs and saved questions within 7 days.</li>
   </ul>
 
   <h2>Your choices and how to remove access</h2>
   <ul>
-    <li><strong>Ask us to delete your data:</strong> email <a href="mailto:sangushashanksai@gmail.com">sangushashanksai@gmail.com</a> with your YouTube channel name. We will delete any stored messages from you within 7 days.</li>
-    <li><strong>Revoke the bot's access:</strong> the owner of a Google account that authorised ChaitrikaBot can remove its access at any time at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a> (Google security settings). Once revoked, the bot can no longer read or post with that account, and we delete the stored token.</li>
-    <li><strong>Avoid the bot:</strong> you can block or hide the @ChaitrikaBot channel in YouTube chat; your messages in our chat are still public on YouTube.</li>
+    <li><strong>Ask us to delete your data:</strong> email <a href="mailto:sangushashanksai@gmail.com">sangushashanksai@gmail.com</a> with your YouTube channel name. We will delete any stored messages and questions from you within 7 days.</li>
+    <li><strong>Revoke the bot's access:</strong> the owner of a Google account that authorised ChaitrikaBot can remove its access at any time on the Google security settings page, <a href="https://security.google.com/settings/security/permissions">security.google.com/settings/security/permissions</a>. Once access is revoked, the bot can no longer read or post with that account, and we delete the stored token.</li>
+    <li><strong>Avoid the bot:</strong> you can block or hide the @ChaitrikaBot channel in YouTube chat. Your messages in our chat are still public on YouTube.</li>
   </ul>
 
   <h2>Children</h2>
-  <p>ChaitrikaBot does not knowingly collect information from children under 13 beyond what they post publicly in our live chat, and it does not reply with any request for personal details.</p>
+  <p>ChaitrikaBot does not knowingly collect information from children under 13 beyond what they post publicly in our live chat, and its replies never ask for personal details.</p>
 
   <h2>Changes</h2>
-  <p>If we change this policy, we will update the date at the top of this page.</p>
+  <p>If we change this policy, we will update the date and version at the top of this page.</p>
 
   <h2>Contact</h2>
   <p>Shashank Sangu, Bengaluru, India · <a href="mailto:sangushashanksai@gmail.com">sangushashanksai@gmail.com</a></p>

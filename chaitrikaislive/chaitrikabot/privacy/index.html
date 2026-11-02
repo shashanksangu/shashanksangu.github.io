@@ -26,9 +26,9 @@
 </header>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">Last updated: 20 October 2026 (v3)</p>
+  <p class="sub">Last updated: 2 November 2026 (v4)</p>
 
-  <p>This policy explains what information ChaitrikaBot ("the bot", "we", "our") accesses, collects, stores, uses, shares and deletes, including <strong>API Data</strong> we receive from YouTube API Services that relates to you. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>. It has two parts: the chat bot, which runs on the streamer's computer, and our stream overlay, which shows the channel's subscriber count. Both use one Google Cloud project.</p>
+  <p>This policy explains what information ChaitrikaBot ("the bot", "we", "our") accesses, collects, stores, uses, shares and deletes, including <strong>API Data</strong> we receive from YouTube API Services that relates to you. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>. It has two parts, both running on the streamer's own computer and using one Google Cloud project: the <strong>chat bot</strong>, which answers, welcomes and thanks viewers in our live chat and keeps it friendly, and <strong>Live Desk</strong>, our stream control panel, which feeds the stream overlay with our subscriber count and new-subscriber alerts.</p>
 
   <h2>YouTube API Services</h2>
   <div class="card">
@@ -38,24 +38,25 @@
   <h2>Who this policy covers</h2>
   <ul>
     <li><strong>Viewers</strong> who post in the live chat of a Chaitrika is Live stream while the bot is running. Viewers never sign in to ChaitrikaBot, and we never access a viewer's Google account.</li>
-    <li><strong>The bot's own account</strong>: the @ChaitrikaBot YouTube channel, which we own. It is the only account that signs in to the bot.</li>
+    <li><strong>Viewers who subscribe</strong> to Chaitrika is Live with their subscriptions set to public, during one of our live streams.</li>
+    <li><strong>Our own two accounts</strong>, which are the only accounts that ever sign in: the @ChaitrikaBot YouTube channel (to read and post in our live chat) and the Chaitrika is Live channel (read-only, in Live Desk).</li>
   </ul>
 
   <h2>API Data we access, collect, store and use</h2>
-  <p>The table lists every kind of YouTube API Data the bot receives, where it comes from, why we use it, and how long we keep it.</p>
+  <p>The table lists every kind of YouTube API Data the bot and Live Desk receive, where it comes from, why we use it, and how long we keep it. Everything happens only on our own channel and our own live streams.</p>
   <div class="tbl"><table>
     <thead><tr><th>Data</th><th>Source (YouTube API)</th><th>Why we use it</th><th>Where it is kept and for how long</th></tr></thead>
     <tbody>
       <tr>
         <td><strong>Viewers' live chat messages</strong>: display name, channel ID, message text and time sent</td>
         <td><code>liveChatMessages.list</code> on our own live stream (OAuth scope <code>youtube.force-ssl</code>, granted by the @ChaitrikaBot account)</td>
-        <td>To decide which messages need a reply, write the reply, and keep the last ~30 messages as context so replies make sense</td>
+        <td>To decide which messages need a reply, write the reply, welcome a viewer on their first message of the stream, keep the last ~30 messages as context so replies make sense, and apply our <a href="/chaitrikaislive/chaitrikabot/terms/#chat-rules">chat rules</a> (bad words, links, spam)</td>
         <td>In memory only while the bot runs during that stream. A copy is written to a daily troubleshooting log on the streamer's computer and is <strong>deleted automatically after 30 days</strong>.</td>
       </tr>
       <tr>
         <td><strong>Message type flags</strong>: Super Chat, moderator, channel owner</td>
         <td><code>liveChatMessages.list</code> (same as above)</td>
-        <td>To skip our own and moderator messages and to thank Super Chats</td>
+        <td>To skip our own and moderator messages (our chat rules are never applied to the streamer or our moderators) and to thank Super Chats</td>
         <td>In memory only during the stream. Not stored.</td>
       </tr>
       <tr>
@@ -67,14 +68,26 @@
       <tr>
         <td><strong>The bot's replies</strong></td>
         <td><code>liveChatMessages.insert</code>, posted as @ChaitrikaBot</td>
-        <td>To answer viewers in our live chat</td>
+        <td>To answer, welcome and thank viewers in our live chat, to explain a chat-rule warning, and now and then to ask the chat a light question when nobody has written for a while. At most one message every 20 seconds.</td>
         <td>Public in our YouTube live chat, as with any chat message. A copy is in the daily log and is deleted after 30 days.</td>
       </tr>
       <tr>
-        <td><strong>Our stream details</strong>: live chat ID and stream title</td>
-        <td><code>videos.list</code> for our own live stream</td>
-        <td>To find the chat of the stream the bot should join</td>
-        <td>In memory only during the stream. Not stored.</td>
+        <td><strong>Message ID</strong> of a chat message that breaks our chat rules</td>
+        <td><code>liveChatMessages.delete</code> on our own live stream (same scope as above). Switched on only once YouTube has approved this for our project.</td>
+        <td>To remove that one message from our live chat. The bot still explains the rule in chat. At most 40 removals per stream.</td>
+        <td>Not stored. The daily troubleshooting log notes that a message was removed and why; it is <strong>deleted after 30 days</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Channel ID</strong> of a viewer who breaks our chat rules a third time in the same stream</td>
+        <td><code>liveChatBans.insert</code>, type <code>temporary</code>, on our own live stream (same scope). Switched on only once YouTube has approved this for our project.</td>
+        <td>To pause that viewer's chatting for a few minutes (a temporary timeout) after two warnings. We never ban anyone permanently with the bot, and at most 10 timeouts happen per stream.</td>
+        <td>In memory only during that stream. The daily log notes the timeout; it is <strong>deleted after 30 days</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Our stream details</strong>: live chat ID, stream title and the current number of viewers watching</td>
+        <td><code>videos.list</code> and <code>liveBroadcasts.list</code> for our own channel's live streams</td>
+        <td>To find the chat of the stream the bot should join, and to show the streamer a short summary after each stream (title, peak viewers)</td>
+        <td>The chat ID is in memory only. Stream summaries (counts only, no viewer names) are kept on the streamer's computer.</td>
       </tr>
       <tr>
         <td><strong>The bot account's channel ID and name</strong></td>
@@ -84,14 +97,20 @@
       </tr>
       <tr>
         <td><strong>Our channel's subscriber count</strong></td>
-        <td><code>channels.list</code> (statistics) for our own channel, using an API key</td>
+        <td><code>channels.list</code> (statistics) for our own channel, with the Chaitrika is Live read-only sign-in (<code>youtube.readonly</code>) in Live Desk</td>
         <td>To show the count and our subscriber goal on the stream overlay</td>
         <td>Refreshed every 5 minutes. Only the latest number is kept, and each refresh overwrites it. No history is kept, and nothing is shown that is more than 30 days old.</td>
       </tr>
       <tr>
-        <td><strong>OAuth access and refresh token</strong> for @ChaitrikaBot</td>
-        <td>Google sign-in (OAuth 2.0), scope <code>youtube.force-ssl</code></td>
-        <td>To let the bot read our live chat and post replies</td>
+        <td><strong>New public subscribers</strong>: display name, channel ID and profile picture of people who subscribe during a stream with their subscriptions set to public</td>
+        <td><code>subscriptions.list</code> (<code>myRecentSubscribers</code>) for our own channel, with the read-only sign-in above, every 60 seconds while we are live</td>
+        <td>To show a thank-you alert with the name on the stream overlay, and to have @ChaitrikaBot thank the person by name in our live chat</td>
+        <td>The profile picture is only shown, never saved. Channel IDs and the time we thanked them are kept on the streamer's computer only so nobody is thanked twice, and are <strong>deleted after 28 days</strong>. The latest name is shown on the overlay for at most 28 days.</td>
+      </tr>
+      <tr>
+        <td><strong>OAuth access and refresh tokens</strong> for @ChaitrikaBot and for Chaitrika is Live</td>
+        <td>Google sign-in (OAuth 2.0): <code>youtube.force-ssl</code> for @ChaitrikaBot, <code>youtube.readonly</code> for Chaitrika is Live</td>
+        <td>To let the bot read our live chat, post replies and apply our chat rules, and to let Live Desk read our own subscriber count and recent public subscribers</td>
         <td>A file on the streamer's computer. Deleted when access is revoked or the bot is retired.</td>
       </tr>
     </tbody>
@@ -99,11 +118,16 @@
   <p>We do not access or collect email addresses, phone numbers, location, payment details, private messages, viewing history, or any data from a viewer's Google account. The bot does not use cookies, trackers or analytics.</p>
 
   <h2>Other information (not from YouTube API Services)</h2>
-  <p>The overlay shows a short thank-you with the display name of a new <em>public</em> subscriber. Those names come from our StreamElements account's own connection to YouTube, not from ChaitrikaBot's YouTube API access. They are kept only so the same person isn't thanked twice and the latest name can be shown, and they are <strong>deleted within 30 days</strong>. A daily count of the bot's own API quota use is also stored. It contains no information about viewers.</p>
+  <ul>
+    <li>Some older overlay themes show subscriber alerts through our StreamElements account's own connection to YouTube instead of Live Desk. Those names are handled by StreamElements under its own terms and are not used by ChaitrikaBot.</li>
+    <li>A daily count of our own API quota use is stored. It contains no information about viewers.</li>
+    <li>After each stream, Live Desk keeps a short summary with counts only (messages in chat, replies, new subscribers, peak viewers), no names.</li>
+    <li>For our weekly "most active in chat" shout-out, Live Desk counts how many messages each display name posted in the chat logs of that week when the streamer opens the list. The counts are not stored separately, and they disappear with the logs after 30 days.</li>
+  </ul>
 
   <h2>How we use information</h2>
   <ul>
-    <li>Only to run ChaitrikaBot in our own live chat, as described in the table above.</li>
+    <li>Only to run ChaitrikaBot and Live Desk for our own live streams, as described in the table above: replying, welcoming and thanking viewers, keeping our chat friendly under our <a href="/chaitrikaislive/chaitrikabot/terms/#chat-rules">chat rules</a>, and showing our subscriber count and alerts on our overlay.</li>
     <li>We do not sell information or use it for advertising, and we do not build profiles of viewers or combine their information with other data.</li>
     <li>We do not use API Data for any purpose other than the ones listed in this policy.</li>
   </ul>
@@ -114,7 +138,7 @@
   <h2>Storage, security and deletion</h2>
   <ul>
     <li>Everything we store is kept only on the streamer's own password-protected computer, not on any server. The StreamElements overlay data is kept in our StreamElements account.</li>
-    <li>Chat logs and saved questions are deleted automatically after 30 days. The bot runs this cleanup every time it starts and again at midnight.</li>
+    <li>Chat logs and saved questions are deleted automatically after 30 days. The bot runs this cleanup every time it starts and again at midnight. The list of thanked subscribers is cleaned up the same way after 28 days.</li>
     <li>We do not store or display any YouTube API Data for more than 30 days. Anything shown on the stream overlay is refreshed at least every 5 minutes.</li>
     <li>When ChaitrikaBot is retired, or its access is revoked, we delete the stored token, logs and saved questions within 7 days.</li>
   </ul>
@@ -124,6 +148,8 @@
     <li><strong>Ask us to delete your data:</strong> email <a href="mailto:sangushashanksai@gmail.com">sangushashanksai@gmail.com</a> with your YouTube channel name. We will delete any stored messages and questions from you within 7 days.</li>
     <li><strong>Revoke the bot's access:</strong> the owner of a Google account that authorised ChaitrikaBot can remove its access at any time on the Google security settings page, <a href="https://security.google.com/settings/security/permissions">security.google.com/settings/security/permissions</a>. Once access is revoked, the bot can no longer read or post with that account, and we delete the stored token.</li>
     <li><strong>Avoid the bot:</strong> you can block or hide the @ChaitrikaBot channel in YouTube chat. Your messages in our chat are still public on YouTube.</li>
+    <li><strong>Not be thanked by name:</strong> set your subscriptions to private in your YouTube settings; we only ever see public subscribers.</li>
+    <li><strong>Disagree with a warning, removal or timeout:</strong> tell our moderators in chat or email us; the streamer and our human moderators can always reverse it.</li>
   </ul>
 
   <h2>Children</h2>

@@ -26,9 +26,9 @@
 </header>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">Last updated: 17 November 2026 (v5)</p>
+  <p class="sub">Last updated: 18 November 2026 (v6)</p>
 
-  <p>This policy explains what information ChaitrikaBot ("the bot", "we", "our") accesses, collects, stores, uses, shares and deletes, including <strong>API Data</strong> we receive from YouTube API Services that relates to you. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>. It has two parts, both running on the streamer's own computer and using one Google Cloud project: the <strong>chat bot</strong>, which answers, welcomes and thanks viewers in our live chat and keeps it friendly, and <strong>Live Desk</strong>, our stream control panel, which feeds the stream overlay with our subscriber count and new-subscriber alerts, thanks our top-tier channel members ("Crown Family") by name on the overlay, and is where the streamer switches the bot's moderation actions on or off.</p>
+  <p>This policy explains what information ChaitrikaBot ("the bot", "we", "our") accesses, collects, stores, uses, shares and deletes, including <strong>API Data</strong> we receive from YouTube API Services that relates to you. ChaitrikaBot is a personal live chat helper run by Shashank Sangu for the YouTube channel <a href="https://www.youtube.com/@chaitrikaislive">Chaitrika is Live</a>. It has two parts, both running on the streamer's own computer and using one Google Cloud project: the <strong>chat bot</strong>, which answers, welcomes and thanks viewers in our live chat and keeps it friendly, and <strong>Live Desk</strong>, our stream control panel, which feeds the stream overlay with our subscriber count and new-subscriber alerts, thanks our channel members by name on the overlay and scenes, and is where the streamer switches the bot's moderation actions on or off.</p>
 
   <h2>YouTube API Services</h2>
   <div class="card">
@@ -57,14 +57,14 @@
       <tr>
         <td><strong>Message type flags</strong>: Super Chat, channel member, moderator, channel owner</td>
         <td><code>liveChatMessages.list</code> (same as above)</td>
-        <td>To skip our own and moderator messages (our chat rules are never applied to the streamer or our moderators), to thank Super Chats and members, and to refresh a Crown Family member's name when they chat as a member (see the membership row below)</td>
+        <td>To skip our own and moderator messages (our chat rules are never applied to the streamer or our moderators), to thank Super Chats and members, and to refresh a member's name when they chat as a member (see the membership row below)</td>
         <td>In memory only during the stream. Not stored.</td>
       </tr>
       <tr>
         <td><strong>Membership messages in our chat</strong>: display name, channel ID, membership level name, number of months, upgrade or gift flag, and profile picture</td>
         <td><code>liveChatMessages.list</code> on our own live stream (same scope as above): the <code>newSponsorEvent</code>, <code>memberMilestoneChatEvent</code> and <code>giftMembershipReceivedEvent</code> messages that YouTube posts in our chat</td>
-        <td>The bot thanks the member in chat. For our top membership level, <strong>"Crown Family"</strong>, whose perks include having your name on our stream, Live Desk shows the member's name on the stream overlay: a thank-you card during gameplay, a thank-you slide on our Starting Soon, Be Right Back and Stream Ended screens, and a one-time join celebration with the profile picture. Other membership levels are only thanked in chat.</td>
-        <td>For Crown Family members only, the display name, channel ID and membership level are kept in a list on the streamer's computer. The entry is refreshed whenever the member posts a membership message or chats as a member, and when the streamer checks the membership in YouTube Studio. If it isn't refreshed for <strong>30 days, it is deleted automatically</strong>. The profile picture is only shown during the celebration and is never saved. For all other levels nothing is kept beyond the daily log, which is deleted after 30 days.</td>
+        <td>The bot thanks the member in chat. For our top membership level, <strong>"Crown Family"</strong>, whose perks include having your name on our stream, Live Desk shows the member's name on the stream overlay: a thank-you card during gameplay, a thank-you slide on our Starting Soon, Be Right Back and Stream Ended screens, and a one-time join celebration with the profile picture. Members of every level (Crown Family, Royal Squad, Squad Mates and Chaitu Supporters) also see their display name scroll past in a members band on our Starting Soon, Be Right Back, Just Chatting, Victory and Stream Ended screens, each level in its own colour.</td>
+        <td>For members of every level, the display name, channel ID and membership level are kept in a list on the streamer's computer. The entry is refreshed whenever the member posts a membership message or chats as a member, and when the streamer checks the membership in YouTube Studio. If it isn't refreshed for <strong>30 days, it is deleted automatically</strong>. The profile picture is only shown during the Crown Family celebration and is never saved.</td>
       </tr>
       <tr>
         <td><strong>Questions for the streamer</strong>: display name, question text and time</td>
@@ -128,7 +128,7 @@
   <h2>Other information (not from YouTube API Services)</h2>
   <ul>
     <li>Some older overlay themes show subscriber alerts through our StreamElements account's own connection to YouTube instead of Live Desk. Those names are handled by StreamElements under its own terms and are not used by ChaitrikaBot.</li>
-    <li>The streamer can also add a Crown Family member's name to the Live Desk list by hand, for example someone who joined while we were offline, after checking YouTube Studio. She can also hide a name from the stream or change how it is shown. A name added by hand is removed when the person is no longer a Crown Family member, or when they ask.</li>
+    <li>The streamer can also add a member's name (with their level) to the Live Desk list by hand, for example someone who joined while we were offline, after checking YouTube Studio. She can also hide a name from the stream or change how it is shown. A name added by hand is removed when the person is no longer a member, or when they ask.</li>
     <li>A daily count of our own API quota use is stored. It contains no information about viewers.</li>
     <li>After each stream, Live Desk keeps a short summary with counts only (messages in chat, replies, new subscribers, peak viewers), no names.</li>
     <li>For our weekly "most active in chat" shout-out, Live Desk counts how many messages each display name posted in the chat logs of that week when the streamer opens the list. The counts are not stored separately, and they disappear with the logs after 30 days.</li>
@@ -136,7 +136,7 @@
 
   <h2>How we use information</h2>
   <ul>
-    <li>Only to run ChaitrikaBot and Live Desk for our own live streams, as described in the table above: replying, welcoming and thanking viewers and members, keeping our chat friendly under our <a href="/chaitrikaislive/chaitrikabot/terms/#chat-rules">chat rules</a>, and showing our subscriber count, alerts and Crown Family names on our overlay.</li>
+    <li>Only to run ChaitrikaBot and Live Desk for our own live streams, as described in the table above: replying, welcoming and thanking viewers and members, keeping our chat friendly under our <a href="/chaitrikaislive/chaitrikabot/terms/#chat-rules">chat rules</a>, and showing our subscriber count, alerts and members' names on our overlay and scenes.</li>
     <li>We do not sell information or use it for advertising, and we do not build profiles of viewers or combine their information with other data.</li>
     <li>We do not use API Data for any purpose other than the ones listed in this policy.</li>
   </ul>
@@ -147,9 +147,9 @@
   <h2>Storage, security and deletion</h2>
   <ul>
     <li>Everything we store is kept only on the streamer's own password-protected computer, not on any server. The StreamElements overlay data is kept in our StreamElements account.</li>
-    <li>Chat logs and saved questions are deleted automatically after 30 days. The bot runs this cleanup every time it starts and again at midnight. The list of thanked subscribers is cleaned up the same way after 28 days. Crown Family entries from chat are checked every hour and deleted once they haven't been refreshed for 30 days.</li>
+    <li>Chat logs and saved questions are deleted automatically after 30 days. The bot runs this cleanup every time it starts and again at midnight. The list of thanked subscribers is cleaned up the same way after 28 days. Member entries from chat are checked every hour and deleted once they haven't been refreshed for 30 days.</li>
     <li>We do not store or display any YouTube API Data for more than 30 days. Anything shown on the stream overlay is refreshed at least every 5 minutes.</li>
-    <li>When ChaitrikaBot is retired, or its access is revoked, we delete the stored token, logs, saved questions and the Crown Family list within 7 days.</li>
+    <li>When ChaitrikaBot is retired, or its access is revoked, we delete the stored token, logs, saved questions and the members list within 7 days.</li>
   </ul>
 
   <h2>Your choices and how to remove access</h2>
@@ -158,7 +158,7 @@
     <li><strong>Revoke the bot's access:</strong> the owner of a Google account that authorised ChaitrikaBot can remove its access at any time on the Google security settings page, <a href="https://security.google.com/settings/security/permissions">security.google.com/settings/security/permissions</a>. Once access is revoked, the bot can no longer read or post with that account, and we delete the stored token.</li>
     <li><strong>Avoid the bot:</strong> you can block or hide the @ChaitrikaBot channel in YouTube chat. Your messages in our chat are still public on YouTube.</li>
     <li><strong>Not be thanked by name:</strong> set your subscriptions to private in your YouTube settings; we only ever see public subscribers.</li>
-    <li><strong>Crown Family members who don't want their name on stream:</strong> tell us in chat or by email. We hide your name at once, and delete it from the list within 7 days if you ask.</li>
+    <li><strong>Members who don't want their name on stream:</strong> tell us in chat or by email. We hide your name at once, and delete it from the list within 7 days if you ask.</li>
     <li><strong>Disagree with a warning, removal or timeout:</strong> tell our moderators in chat or email us; the streamer and our human moderators can always reverse it.</li>
   </ul>
 

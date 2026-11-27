@@ -15,12 +15,12 @@
 </header>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">Last updated: 24 November 2026 (v1)</p>
+  <p class="sub">Last updated: 27 November 2026 (v2)</p>
 
   <p>This policy explains what information the CStream Studio app ("the app", "we", "our") collects, how it is used, where it is kept, who it is shared with, and how you can see, change or delete it. CStream Studio is made by Shashank Sangu, Bengaluru, India, who is responsible for your data under this policy.</p>
 
   <div class="card">
-    <p><strong>In short:</strong> Signing in is optional. If you sign in with Google, we keep your name, email address and your answers to the app's setup questions, so your setup follows you to a new phone. Your <strong>stream key</strong>, your <strong>screen</strong>, your <strong>game sound</strong> and your <strong>voice</strong> never reach us: the stream goes straight from your phone to YouTube. We don't show ads, we don't sell data, and we don't use analytics or tracking tools.</p>
+    <p><strong>In short:</strong> Signing in is optional. If you sign in with Google, we keep your name, email address and your answers to the app's setup questions, so your setup follows you to a new phone. Your <strong>stream key</strong>, your <strong>screen</strong>, your <strong>game sound</strong> and your <strong>voice</strong> never reach us: the stream goes straight from your phone to YouTube. Free users can watch short ads from Google AdMob to unlock going live; AdMob uses your phone's advertising ID to show and measure ads. Paid plans have no ads. Purchases go through Google Play; we never see your card or UPI details. Your avatar, banner pictures and videos stay on your phone. We don't sell data, and we don't use analytics or tracking tools of our own.</p>
   </div>
 
   <h2>1. Information we collect</h2>
@@ -30,6 +30,7 @@
     <tbody>
       <tr><td><strong>Google account details</strong>: your name, email address and a Google account identifier, shared by Google when you choose "Continue with Google"</td><td>To create your CStream Studio account, show who is signed in, and contact you about your account if needed</td><td>Firebase Authentication (Google) and our Cloud Firestore database, until you delete your account</td></tr>
       <tr><td><strong>Setup answers</strong>: the games you stream, where you go live, whether you use a mic or in-game voice chat, how your phone connects (Wi-Fi or mobile data), your streaming experience and your goals</td><td>To pick your picture and sound settings and choose which tips and cards your dashboard shows, on this phone and on any phone you sign in on later</td><td>Our Cloud Firestore database (Google Cloud, Mumbai, India) and on your phone, until you change them or delete your account</td></tr>
+      <tr><td><strong>Your plan and subscription status</strong>: plan, start and renewal date, trial, and a Google Play purchase token</td><td>To unlock what you paid for on every phone you sign in on</td><td>Our Cloud Firestore database (Mumbai) while the subscription is active, then 12 months for refunds and disputes. Google Play keeps its own records</td></tr>
       <tr><td><strong>Account times</strong>: when the account was created and last updated</td><td>To keep the account working and secure</td><td>Same as above</td></tr>
     </tbody>
   </table></div>
@@ -39,14 +40,17 @@
   <ul>
     <li><strong>Your YouTube stream key</strong>, encrypted with a key held in your phone's secure hardware (Android Keystore). It is never sent to us and never written to logs.</li>
     <li><strong>Your settings</strong> (picture quality, volumes, mic choices), <strong>your setup answers</strong>, and how many streams you have done (for the "first stream" checklist).</li>
+    <li><strong>Your avatar, banner text, Live tag text, colour and logo, and (Studio plan) your own banner picture and moving background video.</strong> They are drawn onto your stream on the phone and reach viewers only as part of your stream on YouTube. They are never uploaded to us.</li>
+    <li><strong>Free-plan ad pass</strong>: how many ads you watched and when your 2-hour pass ends.</li>
     <li><strong>Stream logs</strong>: technical details of each stream (bitrate, connection, errors) for troubleshooting. They stay on your phone unless you choose "Share last log" and send one to someone yourself.</li>
   </ul>
 
   <h3>What we never collect</h3>
   <ul>
     <li>Your screen, game sound and voice are encoded on your phone and sent <strong>directly to YouTube</strong> using your stream key. We do not receive, record or store your stream.</li>
-    <li>We do not collect your contacts, photos, files, location, or what you type.</li>
-    <li>We do not use advertising, analytics or crash-reporting services.</li>
+    <li>We do not collect your contacts, photos, files, location, or what you type. Pictures and videos you pick for your banner stay on your phone.</li>
+    <li>Your payment details: Google Play handles payment; we only receive the purchase token and plan.</li>
+    <li>We do not use analytics or crash-reporting services.</li>
   </ul>
 
   <h2>2. Phone permissions</h2>
@@ -55,6 +59,9 @@
     <tbody>
       <tr><td>Screen capture</td><td>To stream your game. Android asks you each time you go live; capture stops when the stream ends.</td></tr>
       <tr><td>Microphone</td><td>To include your voice in the stream (only if your mic is on).</td></tr>
+      <tr><td>Display over other apps</td><td>To show the small LIVE bubble over your game while you stream. Only you see it; it is not part of the stream.</td></tr>
+      <tr><td>Photos and videos (picker)</td><td>Only when you pick an avatar, a logo, or (Studio plan) your own banner picture or video. Android's photo picker gives the app just the file you choose.</td></tr>
+      <tr><td>Advertising ID</td><td>Used by Google AdMob for free-plan ads.</td></tr>
       <tr><td>Notifications</td><td>To show the stream's status with Stop and Mute buttons while you are live.</td></tr>
       <tr><td>Run in the background</td><td>So the phone doesn't stop the stream in the middle of a match.</td></tr>
       <tr><td>Accessibility service "CStream Studio mic helper" (optional, off until you turn it on)</td><td>Games take the microphone for their voice chat, which would cut your voice from the stream. The helper lets the app keep recording your mic during voice chat and draws the small LIVE bubble over the game. It does <strong>not</strong> read your screen, what you type, or any other app's content, and nothing is collected or shared through it.</td></tr>
@@ -63,12 +70,22 @@
   </table></div>
 
   <h2>3. How we use information</h2>
-  <p>Only to run the app's features described above: signing you in, keeping your setup in sync, and personalising your settings and dashboard. We do not use it for advertising, we do not build profiles for anyone else, and we do not sell or rent it.</p>
+  <p>Only to run the app's features described above: signing you in, keeping your setup and plan in sync, and personalising your settings and dashboard. We do not build profiles for anyone else, and we do not sell or rent your information.</p>
+
+  <h2>3a. Ads (Free plan only)</h2>
+  <ul>
+    <li>Ads are served by Google AdMob, which may collect the advertising ID, IP address, device and app information and ad interactions to show, limit and measure ads and to prevent fraud. See <a href="https://policies.google.com/technologies/ads">how Google uses information in ads</a>.</li>
+    <li>Ads are shown only when you choose to watch them (2 short ads unlock 2 hours of going live). No ads appear in your stream, and nothing about your stream is shared with ad partners.</li>
+    <li>Where required, the app asks for your consent for personalised ads. You can turn off ad personalisation or delete the advertising ID in your phone's Settings › Privacy › Ads.</li>
+    <li>Paid plans (Plus, Pro, Studio) show no ads.</li>
+  </ul>
 
   <h2>4. Who we share it with</h2>
   <ul>
     <li><strong>Google (Firebase Authentication and Cloud Firestore)</strong> stores and processes your account and setup answers for us, as our service provider, under the <a href="https://firebase.google.com/terms/data-processing-terms">Firebase data processing terms</a>.</li>
     <li><strong>YouTube</strong> receives your stream directly from your phone when you go live, under the <a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a> and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>. What you stream is public or private according to your settings in YouTube Studio.</li>
+    <li><strong>Google AdMob</strong> (free-plan ads), as an independent controller under Google's terms.</li>
+    <li><strong>Google Play</strong> handles purchases and subscriptions under the <a href="https://play.google.com/about/play-terms/">Google Play Terms of Service</a>.</li>
     <li>We may disclose information if required by law or to protect the rights and safety of our users or others.</li>
   </ul>
   <p>We do not share your information with anyone else.</p>
@@ -102,7 +119,7 @@
   <p>Signing in to CStream Studio is for people aged 18 or over. If you are under 18, you can use the app without signing in, in which case none of your information is stored on our servers. If you believe a person under 18 has created an account, contact us and we will delete it.</p>
 
   <h2>9. Future features</h2>
-  <p>We plan to offer paid features (such as removing ads, overlay packs and a Pro plan) through Google Play, and an option to link your YouTube channel with one tap. These are not in the app yet. Before any of them collects new information, we will update this policy and, where needed, ask for your consent in the app.</p>
+  <p>We plan to offer "Sign in with YouTube" to show your live subscriber count on your banner. It will use read-only access to your channel's public statistics. Before it collects new information, we will update this policy and ask for your consent in the app.</p>
 
   <h2>10. Changes</h2>
   <p>If we change this policy, we will update the date and version at the top and, for important changes, tell you in the app.</p>
